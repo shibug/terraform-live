@@ -18,25 +18,57 @@ provider "azurerm" {
 # -----------------------------
 # RESOURCE GROUPS
 # -----------------------------
-resource "azurerm_resource_group" "dev" {
-  name     = var.env
-  location = "South Central US"
-  tags = {
-    env   = var.env
-  }
+resource "azurerm_resource_group" "rg" {
+  name     = "rg-${var.env}"
+  location = var.location
+  tags     = local.common_tags
+}
+
+resource "azurerm_network_ddos_protection_plan" "ddos" {
+  name                = "ddos-${var.env}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  tags                = local.common_tags
 }
 
 # -----------------------------
 # VIRTUAL NETWORK
 # -----------------------------
-resource "azurerm_virtual_network" "network" {
-  name                = var.env
+resource "azurerm_virtual_network" "vn" {
+  name                = "vn-${var.env}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   address_space       = [var.cidrblock]
-  location            = data.azurerm_resource_group.rg.location
-  resource_group_name = data.azurerm_resource_group.rg.name
 
-  tags = {
-    env   = var.env
+  ddos_protection_plan {
+    id     = azurerm_network_ddos_protection_plan.ddos.id
+    enable = true
   }
+
+  tags = local.common_tags
 }
 
+resource "azurerm_subnet" "worker" {
+  name                 = "worker-subnet"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vn.name
+  address_prefixes     = ["10.0.0.0/24"]
+}
+
+resource "azurerm_network_security_group" "nsg" {
+  name                = "nsg-${var.env}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  tags                = local.common_tags
+}
+
+resource "azurerm_subnet_network_security_group_association" "nsga" {
+  subnet_id                 = azurerm_subnet.worker.id
+  network_security_group_id = azurerm_network_security_group.nsg.id
+}
+
+locals {
+  common_tags = {
+    env = var.env
+  }
+}
