@@ -16,3 +16,15 @@ variable "location" {
   description = "Data center location"
   default     = "South Central US"
 }
+
+variable "windows_admin_username" {
+  description = "Windows administrator username"
+  type        = string
+  sensitive   = true
+}
+
+variable "windows_admin_password" {
+  description = "Windows administrator password"
+  type        = string
+  sensitive   = true
+}
