@@ -1,0 +1,114 @@
+# -----------------------------
+# SUBNETS
+# -----------------------------
+resource "azurerm_subnet" "adarly" {
+  name                 = "adarly-subnet"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vn.name
+  address_prefixes     = ["10.0.1.0/25"]
+}
+
+resource "azurerm_subnet" "adabp" {
+  name                 = "adabp-subnet"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vn.name
+  address_prefixes     = ["10.0.1.128/25"]
+}
+
+# -----------------------------
+# NETWORK SECURITY GROUPS
+# -----------------------------
+resource "azurerm_network_security_group" "adarly" {
+  name                = "nsg-adarly"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  tags                = local.cardano_tags
+}
+
+resource "azurerm_subnet_network_security_group_association" "adarly" {
+  subnet_id                 = azurerm_subnet.adarly.id
+  network_security_group_id = azurerm_network_security_group.adarly.id
+}
+
+# --------------------------------------------------
+# NETWORK SECURITY RULES
+# --------------------------------------------------
+# Allow port 22 access from Internet
+resource "azurerm_network_security_rule" "adarlyInboundInternetAllow" {
+  name                        = "IInternetA"
+  priority                    = 1000
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_address_prefix       = "Internet"
+  source_port_range           = "*"
+  destination_address_prefix  = "VirtualNetwork"
+  destination_port_ranges     = ["22"]
+  resource_group_name         = azurerm_resource_group.rg.name
+  network_security_group_name = azurerm_network_security_group.adarly.name
+}
+
+# -----------------------------
+# PUBLIC IPS
+# -----------------------------
+resource "azurerm_public_ip" "adarly01" {
+  name                = "ip-adarly01"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  allocation_method   = "Static"
+  tags                = local.cardano_tags
+}
+
+
+# -----------------------------
+# NETWORK INTERFACES
+# -----------------------------
+resource "azurerm_network_interface" "adarly01" {
+  name                = "nic-adarly01"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  #  enable_accelerated_networking = true
+  internal_dns_name_label = "adarly01"
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.adarly.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.adarly01.id
+  }
+
+  tags = local.cardano_tags
+}
+
+# -----------------------------
+# VIRTUAL MACHINES
+# -----------------------------
+resource "azurerm_linux_virtual_machine" "adarly01" {
+  name                = "ussc2ladabp01prod"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  size                = "Standard_B1ls"
+  admin_username      = "groot"
+  network_interface_ids = [
+    azurerm_network_interface.adarly01.id,
+  ]
+
+  admin_ssh_key {
+    username   = "groot"
+    public_key = file("~/.ssh/id_rsa.pub")
+  }
+
+  os_disk {
+    name                 = "adarly01-osdisk"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts-gen2"
+    version   = "latest"
+  }
+
+  tags = local.cardano_tags
+}

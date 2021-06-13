@@ -24,13 +24,6 @@ resource "azurerm_resource_group" "rg" {
   tags     = local.common_tags
 }
 
-resource "azurerm_network_ddos_protection_plan" "ddos" {
-  name                = "ddos-${var.env}"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  tags                = local.common_tags
-}
-
 # -----------------------------
 # VIRTUAL NETWORK
 # -----------------------------
@@ -40,18 +33,12 @@ resource "azurerm_virtual_network" "vn" {
   resource_group_name = azurerm_resource_group.rg.name
   address_space       = [var.cidrblock]
 
-  ddos_protection_plan {
-    id     = azurerm_network_ddos_protection_plan.ddos.id
-    enable = true
-  }
-
   tags = local.common_tags
 }
 
 # -----------------------------
 # SUBNETS
 # -----------------------------
-
 resource "azurerm_subnet" "worker" {
   name                 = "worker-subnet"
   resource_group_name  = azurerm_resource_group.rg.name
@@ -79,7 +66,7 @@ resource "azurerm_subnet_network_security_group_association" "nsga" {
 # NETWORK SECURITY RULES
 # --------------------------------------------------
 
-# Allow port 443 access from Internet
+# Allow port 3389 access from Internet
 resource "azurerm_network_security_rule" "workerInboundInternetAllow" {
   name                        = "IInternetA"
   priority                    = 1000
@@ -89,7 +76,7 @@ resource "azurerm_network_security_rule" "workerInboundInternetAllow" {
   source_address_prefix       = "Internet"
   source_port_range           = "*"
   destination_address_prefix  = "VirtualNetwork"
-  destination_port_range     = "3389"
+  destination_port_ranges     = ["3389", "5900"]
   resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.nsg.name
 }
@@ -109,5 +96,8 @@ resource "azurerm_public_ip" "theta-edge" {
 locals {
   common_tags = {
     env = var.env
+  }
+  cardano_tags = {
+    crypto = "cardano"
   }
 }
