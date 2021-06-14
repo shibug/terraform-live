@@ -23,31 +23,23 @@ write_files:
        echo Configuring Zsh shell...
        curl -L http://install.ohmyz.sh | sh
        sed -i 's/^ZSH_THEME=.*/ZSH_THEME="mh"/' ~/.zshrc
-       sed -ri 's/^plugins=\(git\)$/plugins=\(colorize command-not-found common-aliases debian docker extract git history sudo systemd\)/' ~/.zshrc
+       sed -ri 's/^plugins=\(git\)$/plugins=\(colorize command-not-found common-aliases debian docker docker-compose extract git history sudo systemd\)/' ~/.zshrc
        sed -ri 's/^source \$ZSH\/oh-my-zsh\.sh$/ZSH_DISABLE_COMPFIX="true"\nsource \$ZSH\/oh-my-zsh\.sh/' ~/.zshrc
        sed -i 's/.*EDITOR=.*/    export EDITOR='vi'/' ~/.zshrc
        sed -ri 's/^# export PATH=.+/export PATH=$HOME\/bin:\/usr\/local\/bin:$PATH/' ~/.zshrc
-       cp ~/.oh-my-zsh/themes/mh.zsh-theme ~/.oh-my-zsh/custom/
-       sed -i 's/^PROMPT=.*/PROMPT="[%%{$fg[$NCOLOR]%}%B%n%b%%{$reset_color%}@$HOST:%%{$fg[red]%}%30<...<%~%<<%%{$reset_color%}]%(!.#.$) "/' ~/.oh-my-zsh/custom/mh.zsh-theme
        cd ~/.oh-my-zsh && git clone https://github.com/zsh-users/zsh-syntax-highlighting.git
        echo "source ~/.oh-my-zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" >> ~/.zshrc
        echo "source ~/.oh-my-zsh/plugins/z/z.sh" >> ~/.zshrc
        echo 'DISABLE_UPDATE_PROMPT="true"' >> ~/.zshrc
-       echo 'COMPLETION_WAITING_DOTS="true"' >> ~/.zshrc
        echo "alias cls='clear'" >> ~/.zshrc
        echo "alias cat='/usr/local/bin/ccat'" >> ~/.zshrc
-       echo "alias az='docker run --rm registry.ct.bnsf.com/shared/azure-cli:2.0.79 az'" >> ~/.zshrc
+       echo "alias az='docker run -u $(id -u):$(id -g) -v $HOME:/home/az -e HOME=/home/az --rm -it mcr.microsoft.com/azure-cli az'" >> ~/.zshrc
        echo "alias dcp='docker container prune -f'" >> ~/.zshrc
        echo "alias dip='docker image prune -f'" >> ~/.zshrc
        echo "alias dke='docker exec -it'" >> ~/.zshrc
        echo "alias dki='docker run -it --rm'" >> ~/.zshrc
-       echo "alias dsi='docker service inspect'" >> ~/.zshrc
-       echo "alias dsp='docker service ps'" >> ~/.zshrc
        echo "alias dps='docker ps'" >> ~/.zshrc
        echo "alias drm='docker rm -fv'" >> ~/.zshrc
-       echo "alias wdsp='watch docker service ps'" >> ~/.zshrc
-       echo "alias wdnl='watch docker node ls'" >> ~/.zshrc
-       echo "alias az='docker run -u $(id -u):$(id -g) -v $HOME:/home/az -e HOME=/home/az --rm -it registry.ct.bnsf.com/shared/azure-cli:2.5.1 az'" >> ~/.zshrc
        echo 'export SHELL=`which zsh`' >> ~/.bash_profile
        echo '[ -z "$ZSH_VERSION" ] && exec "$SHELL" -l' >> ~/.bash_profile
 
@@ -66,3 +58,4 @@ runcmd:
  - systemctl restart prometheus-node-exporter
  - echo node_create_time_seconds $(date +%s) > /var/lib/prometheus/node-exporter/node.prom.$$
  - mv /var/lib/prometheus/node-exporter/node.prom.$$ /var/lib/prometheus/node-exporter/node.prom
+ - wget -qO /tmp/ccat.tar.gz https://github.com/jingweno/ccat/releases/download/v1.1.0/linux-amd64-1.1.0.tar.gz;tar -C /tmp -xzf /tmp/ccat.tar.gz;cp /tmp/linux-amd64-1.1.0/ccat /usr/local/bin/;rm -fr /tmp/linux-amd64-1.1.0 /tmp/ccat.tar.gz

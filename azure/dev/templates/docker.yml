@@ -1,0 +1,44 @@
+#cloud-config
+
+write_files:
+ - path: /etc/docker/daemon.json
+   permissions: '0644'
+   owner: root:root
+   content: |
+      {
+        "experimental": true,        
+        "icc": false,
+        "metrics-addr": "0.0.0.0:9323",
+        "userland-proxy": false,
+        "no-new-privileges": true
+      }
+ - path: /etc/cron.weekly/docker
+   permissions: '0755'
+   owner: root:root
+   content: |
+       #!/bin/sh -e
+       # prune docker system
+       /usr/bin/docker system prune -af > /var/log/docker-system-prune.log
+       /usr/bin/docker volume prune -f --filter "label!=keep" > /var/log/docker-volume-prune.log
+       /sbin/fstrim -v /var/lib/docker > /var/log/sdc-discard-block.log
+ - path: /etc/cron.daily/lun0-discard
+   permissions: '0755'
+   owner: root:root
+   content: |
+       #!/bin/sh -e
+       # discard unused blocks from mounted device
+       /sbin/fstrim -v /var/lib/docker > /var/log/lun0-discard-block.log   
+
+packages:
+ - software-properties-common
+ - apt-transport-https
+
+apt:
+  sources:
+    docker.list:
+      source: "deb [arch=amd64] https://download.docker.com/linux/ubuntu $RELEASE stable"
+      keyid: 9DC8 5822 9FC7 DD38 854A  E2D8 8D81 803C 0EBF CD88
+      keyserver: https://download.docker.com/linux/ubuntu/gpg
+
+runcmd:
+ - apt-get install -y docker-ce docker-ce-cli containerd.io

@@ -14,4 +14,8 @@ data "cloudinit_config" "default" {
     content_type = "text/cloud-config"
     content      = file("${path.module}/templates/default.yml")
   }
+  part {
+    content_type = "text/cloud-config"
+    content      = file("${path.module}/templates/docker.yml")
+  }
 }
