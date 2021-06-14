@@ -19,8 +19,6 @@ write_files:
        #!/bin/sh -e
        # prune docker system
        /usr/bin/docker system prune -af > /var/log/docker-system-prune.log
-       /usr/bin/docker volume prune -f --filter "label!=keep" > /var/log/docker-volume-prune.log
-       /sbin/fstrim -v /var/lib/docker > /var/log/sdc-discard-block.log
  - path: /etc/cron.daily/lun0-discard
    permissions: '0755'
    owner: root:root
