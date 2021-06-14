@@ -7,6 +7,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "=2.59.0"
     }
+    cloudinit = {
+      source = "hashicorp/cloudinit"
+      version = "2.2.0"
+    }
   }
 }
 

@@ -83,7 +83,7 @@ resource "azurerm_network_interface" "adarly01" {
 # VIRTUAL MACHINES
 # -----------------------------
 resource "azurerm_linux_virtual_machine" "adarly01" {
-  name                = "ussc2ladabp01prod"
+  name                = "ussc1ladarly01prod"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   size                = "Standard_B1ls"
@@ -109,6 +109,8 @@ resource "azurerm_linux_virtual_machine" "adarly01" {
     sku       = "20_04-lts-gen2"
     version   = "latest"
   }
+
+  custom_data = data.cloudinit_config.default.rendered
 
   tags = local.cardano_tags
 }
