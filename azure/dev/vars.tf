@@ -17,8 +17,8 @@ variable "location" {
   default     = "South Central US"
 }
 
-variable "windows_admin_username" {
-  description = "Windows administrator username"
+variable "admin_username" {
+  description = "Administrator username for any OS"
   type        = string
   sensitive   = true
 }
