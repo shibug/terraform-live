@@ -10,6 +10,7 @@ write_files:
    owner: root:users
    content: |       
        #!/bin/zsh
+       
        # This script configures Cardano nodes
        echo Configuring Cardano node...
        echo export NODE_HOME=$HOME/cardano-node >> $HOME/.zshrc
@@ -25,10 +26,20 @@ write_files:
        sed -i ${NODE_CONFIG}-config.json -e "s/TraceBlockFetchDecisions\": false/TraceBlockFetchDecisions\": true/g"
        echo export CARDANO_NODE_SOCKET_PATH="$NODE_HOME/db/socket" >> $HOME/.zshrc
        source $HOME/.zshrc
+       
+       # Install Guild LiveView
        curl -s -o gLiveView.sh https://raw.githubusercontent.com/cardano-community/guild-operators/master/scripts/cnode-helper-scripts/gLiveView.sh
        curl -s -o env https://raw.githubusercontent.com/cardano-community/guild-operators/master/scripts/cnode-helper-scripts/env
        chmod 755 gLiveView.sh
        sed -i env \
          -e "s/\#CONFIG=\"\${CNODE_HOME}\/files\/config.json\"/CONFIG=\"\${NODE_HOME}\/\${NODE_CONFIG}-config.json\"/g" \
          -e "s/\#SOCKET=\"\${CNODE_HOME}\/sockets\/node0.socket\"/SOCKET=\"\${NODE_HOME}\/db\/socket\"/g"
+       
+       HOST=$(hostname)
+       if [[ ${HOST} = ussc2ladabpprod ]]; then
+         echo 'Configuring Block Producer Node...'
+       else
+         echo 'Configuring Relay Nodes...'
+         sed -i ${NODE_CONFIG}-config.json -e "s/TraceMempool\": true/TraceMempool\": false/g"
+       fi
 

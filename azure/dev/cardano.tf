@@ -150,7 +150,7 @@ resource "azurerm_linux_virtual_machine" "adarly01" {
   name                = "ussc1ladarly01prod"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  size                = "Standard_B1s"
+  size                = "Standard_B1ms"
   admin_username      = var.admin_username
   network_interface_ids = [
     azurerm_network_interface.adarly01.id,
@@ -183,7 +183,7 @@ resource "azurerm_linux_virtual_machine" "adabp" {
   name                = "ussc2ladabpprod"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  size                = "Standard_B1s"
+  size                = "Standard_B1ms"
   admin_username      = var.admin_username
   network_interface_ids = [
     azurerm_network_interface.adabp.id,
