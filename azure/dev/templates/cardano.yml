@@ -2,6 +2,7 @@
 
 packages:
  - tcptraceroute
+ - jq
 
 write_files:
  - path: /usr/local/bin/configureCardanoNodes

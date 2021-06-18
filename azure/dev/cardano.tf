@@ -81,7 +81,7 @@ resource "azurerm_network_security_rule" "adabpInboundRelayAllow" {
   direction                   = "Inbound"
   access                      = "Allow"
   protocol                    = "Tcp"
-  source_address_prefix       = "10.0.1.0/25"
+  source_address_prefixes     = ["104.44.131.44"]
   source_port_range           = "*"
   destination_address_prefix  = "VirtualNetwork"
   destination_port_range      = "6000"
@@ -150,7 +150,7 @@ resource "azurerm_linux_virtual_machine" "adarly01" {
   name                = "ussc1ladarly01prod"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  size                = "Standard_B1ls"
+  size                = "Standard_B1s"
   admin_username      = var.admin_username
   network_interface_ids = [
     azurerm_network_interface.adarly01.id,
@@ -183,7 +183,7 @@ resource "azurerm_linux_virtual_machine" "adabp" {
   name                = "ussc2ladabpprod"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  size                = "Standard_B1ls"
+  size                = "Standard_B1s"
   admin_username      = var.admin_username
   network_interface_ids = [
     azurerm_network_interface.adabp.id,

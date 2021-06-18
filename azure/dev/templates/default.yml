@@ -20,7 +20,7 @@ write_files:
            UserKnownHostsFile /dev/null
            StrictHostKeyChecking no
            PasswordAuthentication no
- - path: /usr/local/bin/configurezsh
+ - path: /usr/local/bin/configureZsh
    permissions: '0755'
    owner: root:users
    content: |       
@@ -34,7 +34,7 @@ write_files:
        sed -i 's/.*EDITOR=.*/    export EDITOR='vi'/' ~/.zshrc
        sed -ri 's/^# export PATH=.+/export PATH=$HOME\/bin:\/usr\/local\/bin:$PATH/' ~/.zshrc
        cp ~/.oh-my-zsh/themes/mh.zsh-theme ~/.oh-my-zsh/custom/
-       sed -i 's/^PROMPT=.*/PROMPT="[%%{$fg[$NCOLOR]%}%B%n%b%%{$reset_color%}@$HOST:%%{$fg[red]%}%30<...<%~%<<%%{$reset_color%}]%(!.#.$) "/' ~/.oh-my-zsh/custom/mh.zsh-theme
+       sed -i 's/^PROMPT=.*/PROMPT="[%{$fg[$NCOLOR]%}%B%n%b%{$reset_color%}@$HOST:%{$fg[red]%}%30<...<%~%<<%{$reset_color%}]%(!.#.$) "/' ~/.oh-my-zsh/custom/mh.zsh-theme
        cd ~/.oh-my-zsh && git clone https://github.com/zsh-users/zsh-syntax-highlighting.git
        echo "source ~/.oh-my-zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" >> ~/.zshrc
        echo "source ~/.oh-my-zsh/plugins/z/z.sh" >> ~/.zshrc
@@ -48,6 +48,7 @@ write_files:
        echo "alias dki='docker run -it --rm'" >> ~/.zshrc
        echo "alias dps='docker ps'" >> ~/.zshrc
        echo "alias drm='docker rm -fv'" >> ~/.zshrc
+       echo "alias dlf='docker logs -f'" >> ~/.zshrc
        echo 'export SHELL=`which zsh`' >> ~/.bash_profile
        echo '[ -z "$ZSH_VERSION" ] && exec "$SHELL" -l' >> ~/.bash_profile
 
