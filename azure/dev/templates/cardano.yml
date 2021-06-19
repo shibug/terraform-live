@@ -12,12 +12,13 @@ write_files:
        #!/bin/zsh
        
        # This script configures Cardano nodes
-       echo Configuring Cardano node...
+       echo Configuring Cardano nodes...
        echo export NODE_HOME=$HOME/cardano-node >> $HOME/.zshrc
        echo export NODE_CONFIG=testnet >> $HOME/.zshrc
        echo export NODE_BUILD_NUM=$(curl https://hydra.iohk.io/job/Cardano/iohk-nix/cardano-deployment/latest-finished/download/1/index.html | grep -e "build" | sed 's/.*build\/\([0-9]*\)\/download.*/\1/g') >> $HOME/.zshrc
        source $HOME/.zshrc
-       mkdir $NODE_HOME
+
+       mkdir -p $NODE_HOME
        cd $NODE_HOME
        wget -N https://hydra.iohk.io/build/${NODE_BUILD_NUM}/download/1/${NODE_CONFIG}-byron-genesis.json
        wget -N https://hydra.iohk.io/build/${NODE_BUILD_NUM}/download/1/${NODE_CONFIG}-topology.json
@@ -38,8 +39,42 @@ write_files:
        HOST=$(hostname)
        if [[ ${HOST} = ussc2ladabpprod ]]; then
          echo 'Configuring Block Producer Node...'
+         cat > $NODE_HOME/${NODE_CONFIG}-topology.json << EOF 
+         {
+           "Producers": [
+             {
+               "addr": "rly1.cardano.mylo.farm",
+               "port": 6000,
+               "valency": 1
+             }
+           ]
+         }
+       EOF
        else
          echo 'Configuring Relay Nodes...'
          sed -i ${NODE_CONFIG}-config.json -e "s/TraceMempool\": true/TraceMempool\": false/g"
+         
+         if [[ ${NODE_CONFIG} = mainnet ]]; then
+           IOHK_RELAY="relays-new.cardano-mainnet.iohk.io"
+         else
+           IOHK_RELAY="relays-new.cardano-testnet.iohkdev.io"
+         fi
+         cat > $NODE_HOME/${NODE_CONFIG}-topology.json << EOF 
+         {
+           "Producers": [
+             {
+               "addr": "bp.cardano.mylo.farm",
+               "port": 6000,
+               "valency": 1
+             },
+             {
+               "addr": "${IOHK_RELAY}",
+               "port": 3001,
+               "valency": 2
+             }
+           ]
+         }
+       EOF
        fi
+
 
