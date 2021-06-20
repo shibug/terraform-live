@@ -176,6 +176,20 @@ resource "azurerm_linux_virtual_machine" "adarly01" {
 
   custom_data = data.cloudinit_config.default.rendered
 
+  connection {
+    type        = "ssh"
+    agent       = false
+    user        = var.admin_username
+    host        = azurerm_public_ip.adarly01.ip_address
+    private_key = file("~/.ssh/id_rsa.pub")
+    timeout     = "2m"
+  }
+
+  provisioner "file" {
+    source      = "${path.module}/scripts/"
+    destination = "/home/${var.admin_username}"
+  }
+
   tags = local.cardano_tags
 }
 
@@ -208,6 +222,20 @@ resource "azurerm_linux_virtual_machine" "adabp" {
   }
 
   custom_data = data.cloudinit_config.default.rendered
+
+  connection {
+    type        = "ssh"
+    agent       = false
+    user        = var.admin_username
+    host        = azurerm_public_ip.adabp.ip_address
+    private_key = file("~/.ssh/id_rsa.pub")
+    timeout     = "2m"
+  }
+
+  provisioner "file" {
+    source      = "${path.module}/scripts/"
+    destination = "/home/${var.admin_username}"
+  }
 
   tags = local.cardano_tags
 }
