@@ -332,13 +332,13 @@ checkPeers() {
   echo "direction: ${direction}"
   if [[ ${direction} = "out" ]]; then
     if [[ ${use_lsof} = 'Y' ]]; then
-      peers=$(lsof -Pnl +M | grep ESTABLISHED | awk -v pid="${CNODE_PID}" -v port=":(${CNODE_PORT}|${EKG_PORT}|${PROM_PORT})->" '$2 == pid && $9 !~ port {print $9}' | awk -F "->" '{print $2}')
+      peers=$(sudo lsof -Pnl +M | grep ESTABLISHED | awk -v pid="${CNODE_PID}" -v port=":(${CNODE_PORT}|${EKG_PORT}|${PROM_PORT})->" '$2 == pid && $9 !~ port {print $9}' | awk -F "->" '{print $2}')
     else
       peers=$(ss -tnp state established 2>/dev/null | grep "${CNODE_PID}," | awk -v port=":(${CNODE_PORT}|${EKG_PORT}|${PROM_PORT})" '$3 !~ port {print $4}')
     fi
   else
     if [[ ${use_lsof} = 'Y' ]]; then
-      peers=$(lsof -Pnl +M | grep ESTABLISHED | awk -v pid="${CNODE_PID}" -v port=":${CNODE_PORT}->" '$2 == pid && $9 ~ port {print $9}' | awk -F "->" '{print $2}')
+      peers=$(sudo lsof -Pnl +M | grep ESTABLISHED | awk -v pid="${CNODE_PID}" -v port=":${CNODE_PORT}->" '$2 == pid && $9 ~ port {print $9}' | awk -F "->" '{print $2}')
     else
       cncli_port=$(ss -tnp state established "( dport = :${CNODE_PORT} )" 2>/dev/null | grep cncli | awk '{print $3}' | cut -d: -f2)
       peers=$(ss -tnp state established 2>/dev/null | grep "${CNODE_PID}," | grep -v ":${cncli_port} " | awk -v port=":${CNODE_PORT}" '$3 ~ port {print $4}')
@@ -538,8 +538,8 @@ while true; do
   
   if [[ ${show_peers} = "false" ]]; then
     if [[ ${use_lsof} = 'Y' ]]; then
-      peers_in=$(lsof -Pnl +M | grep ESTABLISHED | awk -v pid="${CNODE_PID}" -v port=":${CNODE_PORT}->" '$2 == pid && $9 ~ port {print $9}' | awk -F "->" '{print $2}' | wc -l)
-      peers_out=$(lsof -Pnl +M | grep ESTABLISHED | awk -v pid="${CNODE_PID}" -v port=":(${CNODE_PORT}|${EKG_PORT}|${PROM_PORT})->" '$2 == pid && $9 !~ port {print $9}' | awk -F "->" '{print $2}' | wc -l)
+      peers_in=$(sudo lsof -Pnl +M | grep ESTABLISHED | awk -v pid="${CNODE_PID}" -v port=":${CNODE_PORT}->" '$2 == pid && $9 ~ port {print $9}' | awk -F "->" '{print $2}' | wc -l)
+      peers_out=$(sudo lsof -Pnl +M | grep ESTABLISHED | awk -v pid="${CNODE_PID}" -v port=":(${CNODE_PORT}|${EKG_PORT}|${PROM_PORT})->" '$2 == pid && $9 !~ port {print $9}' | awk -F "->" '{print $2}' | wc -l)
     else
       peers_in=$(ss -tnp state established 2>/dev/null | grep "${CNODE_PID}," | grep -v ":${cncli_port} " | awk -v port=":${CNODE_PORT}" '$3 ~ port {print}' | wc -l)
       peers_out=$(ss -tnp state established 2>/dev/null | grep "${CNODE_PID}," | awk -v port=":(${CNODE_PORT}|${EKG_PORT}|${PROM_PORT})" '$3 !~ port {print}' | wc -l)

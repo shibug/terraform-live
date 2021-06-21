@@ -181,7 +181,7 @@ resource "azurerm_linux_virtual_machine" "adarly01" {
     agent       = false
     user        = var.admin_username
     host        = azurerm_public_ip.adarly01.ip_address
-    private_key = file("~/.ssh/id_rsa.pub")
+    private_key = file("~/.ssh/id_rsa")
     timeout     = "2m"
   }
 
@@ -228,7 +228,7 @@ resource "azurerm_linux_virtual_machine" "adabp" {
     agent       = false
     user        = var.admin_username
     host        = azurerm_public_ip.adabp.ip_address
-    private_key = file("~/.ssh/id_rsa.pub")
+    private_key = file("~/.ssh/id_rsa")
     timeout     = "2m"
   }
 

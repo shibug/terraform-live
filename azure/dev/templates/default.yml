@@ -49,7 +49,7 @@ write_files:
        echo "alias dps='docker ps'" >> ~/.zshrc
        echo "alias drm='docker rm -fv'" >> ~/.zshrc
        echo "alias dlf='docker logs -f'" >> ~/.zshrc
-       echo "alias cardano-cli='docker run -it --rm --entrypoint /bin/cardano-cli -v /home/groot/cardano-node:/cardano -e CARDANO_NODE_SOCKET_PATH=/cardano/db/socket inputoutput/cardano-node:1.27.0'" >> ~/.zshrc
+       #echo "alias cardano-cli='docker run -it --rm --entrypoint /bin/cardano-cli -v /home/groot/cardano-node:/cardano -e CARDANO_NODE_SOCKET_PATH=/cardano/db/socket inputoutput/cardano-node:1.27.0'" >> ~/.zshrc
        echo 'export SHELL=`which zsh`' >> ~/.bash_profile
        echo '[ -z "$ZSH_VERSION" ] && exec "$SHELL" -l' >> ~/.bash_profile
 

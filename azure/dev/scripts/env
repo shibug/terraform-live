@@ -6,7 +6,7 @@
 # Leave as is if unsure              #
 ######################################
 
-CCLI="cardano-cli"                                      # Override automatic detection of path to cardano-cli executable
+CCLI="docker run -it --rm --entrypoint /bin/cardano-cli -v /home/groot/cardano-node:/cardano -e CARDANO_NODE_SOCKET_PATH=/cardano/db/socket inputoutput/cardano-node:1.27.0"                                      # Override automatic detection of path to cardano-cli executable
 #CNCLI="${HOME}/.cargo/bin/cncli"                       # Override automatic detection of path to cncli executable (https://github.com/AndrewWestberg/cncli)
 #CNODE_HOME="/opt/cardano/cnode"                        # Override default CNODE_HOME path (defaults to /opt/cardano/cnode)
 CNODE_PORT=6000                                         # Set node port
@@ -118,9 +118,6 @@ if [[ -z "${CCLI}" ]]; then
     echo "You do not have a cardano-cli binary available in \$PATH."
     return 1
   fi
-else
-  CCLI_PARENT="$(dirname ${CCLI})"
-  export PATH="${CCLI_PARENT}":$PATH
 fi
 
 if [[ -z "${CNCLI}" ]]; then
@@ -780,8 +777,9 @@ getEraIdentifier() {
   return 0
 }
 
-ccli_content=$(cardano-cli version)
+ccli_content=$(${CCLI} version)
 node_version="$(echo ${ccli_content} | head -1 | cut -d' ' -f2)"
+
 if ! versionCheck "1.27.0" "${node_version}"; then
   echo -e "\nGuild scripts has now been upgraded to support cardano-node 1.27.0 or higher (${node_version} found).\nPlease update cardano-node (note that you should ideally update your config too) or use tagged branches for older node version.\n\n"
   return 1
