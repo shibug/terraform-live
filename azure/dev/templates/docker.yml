@@ -40,4 +40,3 @@ apt:
 
 runcmd:
  - apt-get install -y docker-ce docker-ce-cli containerd.io
- - echo "DOCKER_CONTENT_TRUST=1" | tee -a /etc/environment
