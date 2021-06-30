@@ -55,7 +55,7 @@ resource "azurerm_network_security_rule" "adarlyInboundInternetAllow" {
   source_address_prefix       = "Internet"
   source_port_range           = "*"
   destination_address_prefix  = "VirtualNetwork"
-  destination_port_ranges     = ["22", "6000"]
+  destination_port_ranges     = ["1122", "6000"]
   resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.adarly.name
 }
@@ -70,7 +70,7 @@ resource "azurerm_network_security_rule" "adabpInboundInternetAllow" {
   source_address_prefix       = "Internet"
   source_port_range           = "*"
   destination_address_prefix  = "VirtualNetwork"
-  destination_port_range      = "22"
+  destination_port_range      = "1122"
   resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.adabp.name
 }

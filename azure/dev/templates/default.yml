@@ -9,6 +9,12 @@ users:
 final_message: "The system is finally up, after $UPTIME seconds"
 
 write_files:
+ - path: /etc/ssh/sshd_config/10-port.conf
+   permissions: '0644'
+   owner: root:root
+   content: |       
+       Port 1122
+       PermitRootLogin no
  - path: /etc/ssh/ssh_config
    permissions: '0644'
    owner: root:root
