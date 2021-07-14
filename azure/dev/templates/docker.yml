@@ -1,19 +1,4 @@
 #cloud-config
-disk_setup:
-  /dev/disk/azure/scsi1/lun1:
-    table_type: gpt
-    layout: true
-    overwrite: false
-
-fs_setup:
- - label: 'Data Storage'
-   device: /dev/disk/azure/scsi1/lun1
-   partition: 'any'
-   filesystem: ext4
-
-mounts:
- - [ /dev/disk/azure/scsi1/lun1-part1, /data, "ext4", "defaults,nofail", "0", "2" ]
-
 write_files:
  - path: /etc/docker/daemon.json
    permissions: '0644'
@@ -54,4 +39,10 @@ apt:
       keyserver: https://download.docker.com/linux/ubuntu/gpg
 
 runcmd:
+ - parted /dev/sdb --script mklabel gpt mkpart xfspart xfs 0% 100%
+ - mkfs.xfs /dev/sdb1
+ - partprobe /dev/sdb1
+ - mkdir /data
+ - mount /dev/sdb1 /data
+ - echo "UUID=$(blkid | grep sdb | cut -d ' ' -f 2 | cut -c7-42)   /data   xfs   defaults,nofail,nobarrier   1   2" >> /etc/fstab
  - apt-get install -y docker-ce docker-ce-cli containerd.io
