@@ -15,7 +15,7 @@ resource "azurerm_network_interface" "theta-edge" {
     public_ip_address_id          = azurerm_public_ip.theta-edge.id
   }
 
-  tags = local.common_tags
+  tags = local.theta_tags
 }
 
 # -----------------------------
@@ -49,5 +49,5 @@ resource "azurerm_windows_virtual_machine" "theta-edge" {
     type = "SystemAssigned"
   }
 
-  tags = local.common_tags
+  tags = local.theta_tags
 }

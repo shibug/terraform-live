@@ -17,6 +17,11 @@ variable "location" {
   default     = "South Central US"
 }
 
+variable "useast2loc" {
+  description = "US East 2 Data center location"
+  default     = "East US 2"
+}
+
 variable "admin_username" {
   description = "Administrator username for any OS"
   type        = string

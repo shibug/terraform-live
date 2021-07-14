@@ -3,15 +3,15 @@
 # -----------------------------
 resource "azurerm_subnet" "adarly" {
   name                 = "adarly-subnet"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vn.name
+  resource_group_name  = azurerm_resource_group.useast2.name
+  virtual_network_name = azurerm_virtual_network.useast2.name
   address_prefixes     = ["10.0.1.0/25"]
 }
 
 resource "azurerm_subnet" "adabp" {
   name                 = "adabp-subnet"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vn.name
+  resource_group_name  = azurerm_resource_group.useast2.name
+  virtual_network_name = azurerm_virtual_network.useast2.name
   address_prefixes     = ["10.0.1.128/25"]
 }
 
@@ -20,8 +20,8 @@ resource "azurerm_subnet" "adabp" {
 # -----------------------------
 resource "azurerm_network_security_group" "adarly" {
   name                = "nsg-adarly"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.useast2.location
+  resource_group_name = azurerm_resource_group.useast2.name
   tags                = local.cardano_tags
 }
 
@@ -32,8 +32,8 @@ resource "azurerm_subnet_network_security_group_association" "adarly" {
 
 resource "azurerm_network_security_group" "adabp" {
   name                = "nsg-adabp"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.useast2.location
+  resource_group_name = azurerm_resource_group.useast2.name
   tags                = local.cardano_tags
 }
 
@@ -56,7 +56,7 @@ resource "azurerm_network_security_rule" "adarlyInboundInternetAllow" {
   source_port_range           = "*"
   destination_address_prefix  = "VirtualNetwork"
   destination_port_ranges     = ["1122", "6000"]
-  resource_group_name         = azurerm_resource_group.rg.name
+  resource_group_name         = azurerm_resource_group.useast2.name
   network_security_group_name = azurerm_network_security_group.adarly.name
 }
 
@@ -71,7 +71,7 @@ resource "azurerm_network_security_rule" "adabpInboundInternetAllow" {
   source_port_range           = "*"
   destination_address_prefix  = "VirtualNetwork"
   destination_port_range      = "1122"
-  resource_group_name         = azurerm_resource_group.rg.name
+  resource_group_name         = azurerm_resource_group.useast2.name
   network_security_group_name = azurerm_network_security_group.adabp.name
 }
 # Allow port 6000 access from relay nodes subnet
@@ -85,7 +85,7 @@ resource "azurerm_network_security_rule" "adabpInboundRelayAllow" {
   source_port_range           = "*"
   destination_address_prefix  = "VirtualNetwork"
   destination_port_range      = "6000"
-  resource_group_name         = azurerm_resource_group.rg.name
+  resource_group_name         = azurerm_resource_group.useast2.name
   network_security_group_name = azurerm_network_security_group.adabp.name
 }
 
@@ -94,16 +94,16 @@ resource "azurerm_network_security_rule" "adabpInboundRelayAllow" {
 # -----------------------------
 resource "azurerm_public_ip" "adarly01" {
   name                = "ip-adarly01"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.useast2.name
+  location            = azurerm_resource_group.useast2.location
   allocation_method   = "Static"
   tags                = local.cardano_tags
 }
 
 resource "azurerm_public_ip" "adabp" {
   name                = "ip-adabp"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.useast2.name
+  location            = azurerm_resource_group.useast2.location
   allocation_method   = "Static"
   tags                = local.cardano_tags
 }
@@ -112,11 +112,11 @@ resource "azurerm_public_ip" "adabp" {
 # NETWORK INTERFACES
 # -----------------------------
 resource "azurerm_network_interface" "adarly01" {
-  name                = "nic-adarly01"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  #  enable_accelerated_networking = true
-  internal_dns_name_label = "adarly01"
+  name                          = "nic-adarly01"
+  location                      = azurerm_resource_group.useast2.location
+  resource_group_name           = azurerm_resource_group.useast2.name
+  enable_accelerated_networking = true
+  internal_dns_name_label       = "adarly01"
   ip_configuration {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.adarly.id
@@ -128,11 +128,11 @@ resource "azurerm_network_interface" "adarly01" {
 }
 
 resource "azurerm_network_interface" "adabp" {
-  name                = "nic-adabp"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  #  enable_accelerated_networking = true
-  internal_dns_name_label = "adabp"
+  name                          = "nic-adabp"
+  location                      = azurerm_resource_group.useast2.location
+  resource_group_name           = azurerm_resource_group.useast2.name
+  enable_accelerated_networking = true
+  internal_dns_name_label       = "adabp"
   ip_configuration {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.adabp.id
@@ -143,14 +143,39 @@ resource "azurerm_network_interface" "adabp" {
   tags = local.cardano_tags
 }
 
+# ---------------------------------------------------------
+# MANAGED DISK
+# ---------------------------------------------------------
+resource "azurerm_managed_disk" "adarly01" {
+  name                 = "md-adarly01"
+  location             = azurerm_resource_group.useast2.location
+  resource_group_name  = azurerm_resource_group.useast2.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 16
+
+  tags = local.cardano_tags
+}
+
+resource "azurerm_managed_disk" "adabp" {
+  name                 = "md-adabp"
+  location             = azurerm_resource_group.useast2.location
+  resource_group_name  = azurerm_resource_group.useast2.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 16
+
+  tags = local.cardano_tags
+}
+
 # -----------------------------
 # VIRTUAL MACHINES
 # -----------------------------
 resource "azurerm_linux_virtual_machine" "adarly01" {
-  name                = "ussc1ladarly01prod"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  size                = "Standard_B2ms"
+  name                = "use1ladarly01prod"
+  resource_group_name = azurerm_resource_group.useast2.name
+  location            = azurerm_resource_group.useast2.location
+  size                = "Standard_D2s_v5"
   admin_username      = var.admin_username
   network_interface_ids = [
     azurerm_network_interface.adarly01.id,
@@ -176,28 +201,29 @@ resource "azurerm_linux_virtual_machine" "adarly01" {
 
   custom_data = data.cloudinit_config.default.rendered
 
-  connection {
-    type        = "ssh"
-    agent       = false
-    user        = var.admin_username
-    host        = azurerm_public_ip.adarly01.ip_address
-    private_key = file("~/.ssh/id_rsa")
-    timeout     = "2m"
-  }
+  #connection {
+  #  type        = "ssh"
+  #  agent       = false
+  #  user        = var.admin_username
+  #  host        = azurerm_public_ip.adarly01.ip_address
+  #  port        = 1122
+  #  private_key = file("~/.ssh/id_rsa")
+  #  timeout     = "2m"
+  #}
 
-  provisioner "file" {
-    source      = "${path.module}/scripts/"
-    destination = "/home/${var.admin_username}"
-  }
+  #provisioner "file" {
+  #  source      = "${path.module}/scripts/"
+  #  destination = "/home/${var.admin_username}"
+  #}
 
   tags = local.cardano_tags
 }
 
 resource "azurerm_linux_virtual_machine" "adabp" {
-  name                = "ussc2ladabpprod"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  size                = "Standard_B2ms"
+  name                = "use2ladabpprod"
+  resource_group_name = azurerm_resource_group.useast2.name
+  location            = azurerm_resource_group.useast2.location
+  size                = "Standard_D2s_v5"
   admin_username      = var.admin_username
   network_interface_ids = [
     azurerm_network_interface.adabp.id,
@@ -223,19 +249,37 @@ resource "azurerm_linux_virtual_machine" "adabp" {
 
   custom_data = data.cloudinit_config.default.rendered
 
-  connection {
-    type        = "ssh"
-    agent       = false
-    user        = var.admin_username
-    host        = azurerm_public_ip.adabp.ip_address
-    private_key = file("~/.ssh/id_rsa")
-    timeout     = "2m"
-  }
+  #connection {
+  #  type        = "ssh"
+  #  agent       = false
+  #  user        = var.admin_username
+  #  host        = azurerm_public_ip.adabp.ip_address
+  #  port        = 1122
+  #  private_key = file("~/.ssh/id_rsa")
+  #  timeout     = "2m"
+  #}
 
-  provisioner "file" {
-    source      = "${path.module}/scripts/"
-    destination = "/home/${var.admin_username}"
-  }
+  #provisioner "file" {
+  #  source      = "${path.module}/scripts/"
+  #  destination = "/home/${var.admin_username}"
+  #}
 
   tags = local.cardano_tags
+}
+
+# ------------------------------------
+# VIRTUAL MACHINE DATA DISK ATTACHMENT
+# ------------------------------------
+resource "azurerm_virtual_machine_data_disk_attachment" "adarly01" {
+  managed_disk_id    = azurerm_managed_disk.adarly01.id
+  virtual_machine_id = azurerm_linux_virtual_machine.adarly01.id
+  lun                = 1
+  caching            = "ReadWrite"
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "adabp" {
+  managed_disk_id    = azurerm_managed_disk.adabp.id
+  virtual_machine_id = azurerm_linux_virtual_machine.adabp.id
+  lun                = 1
+  caching            = "ReadWrite"
 }

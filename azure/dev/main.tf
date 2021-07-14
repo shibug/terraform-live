@@ -28,6 +28,12 @@ resource "azurerm_resource_group" "rg" {
   tags     = local.common_tags
 }
 
+resource "azurerm_resource_group" "useast2" {
+  name     = "rg-useast2"
+  location = var.useast2loc
+  tags     = local.common_tags
+}
+
 # -----------------------------
 # VIRTUAL NETWORK
 # -----------------------------
@@ -35,6 +41,15 @@ resource "azurerm_virtual_network" "vn" {
   name                = "vn-${var.env}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
+  address_space       = [var.cidrblock]
+
+  tags = local.common_tags
+}
+
+resource "azurerm_virtual_network" "useast2" {
+  name                = "vn-useast2"
+  location            = azurerm_resource_group.useast2.location
+  resource_group_name = azurerm_resource_group.useast2.name
   address_space       = [var.cidrblock]
 
   tags = local.common_tags
@@ -58,7 +73,7 @@ resource "azurerm_network_security_group" "nsg" {
   name                = "nsg-${var.env}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  tags                = local.common_tags
+  tags                = local.theta_tags
 }
 
 resource "azurerm_subnet_network_security_group_association" "nsga" {
@@ -94,7 +109,7 @@ resource "azurerm_public_ip" "theta-edge" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   allocation_method   = "Static"
-  tags                = local.common_tags
+  tags                = local.theta_tags
 }
 
 locals {
@@ -103,5 +118,11 @@ locals {
   }
   cardano_tags = {
     crypto = "cardano"
+  }
+  theta_tags = {
+    crypto = "theta"
+  }
+  eth_tags = {
+    crypto = "ethereum"
   }
 }

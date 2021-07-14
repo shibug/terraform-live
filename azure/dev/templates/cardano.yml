@@ -13,8 +13,8 @@ write_files:
        
        # This script configures Cardano nodes
        echo Configuring Cardano nodes...
-       echo export NODE_HOME=${HOME}/cardano >> ${HOME}/.zshrc
-       echo export NODE_CONFIG=testnet >> ${HOME}/.zshrc
+       echo export NODE_HOME=/data/cardano >> ${HOME}/.zshrc
+       echo export NODE_CONFIG=mainnet >> ${HOME}/.zshrc
        echo export NODE_BUILD_NUM=$(curl https://hydra.iohk.io/job/Cardano/iohk-nix/cardano-deployment/latest-finished/download/1/index.html | grep -e "build" | sed 's/.*build\/\([0-9]*\)\/download.*/\1/g') >> ${HOME}/.zshrc
        source ${HOME}/.zshrc
 
@@ -30,7 +30,7 @@ write_files:
        chown -R 1000:1000 ${NODE_HOME}
        
        HOST=$(hostname)
-       if [[ ${HOST} = ussc2ladabpprod ]]; then
+       if [[ ${HOST} = use2ladabpprod ]]; then
          echo 'Configuring Block Producer Node...'
          cat > ${NODE_HOME}/config/${NODE_CONFIG}-topology.json << EOF 
          {
@@ -69,5 +69,8 @@ write_files:
          }
        EOF
        fi
+runcmd:
+ - mkdir -p /data/cardano
+ - chmod -R o+wt /data/cardano
 
 

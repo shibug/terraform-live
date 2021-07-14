@@ -1,4 +1,18 @@
 #cloud-config
+disk_setup:
+  /dev/disk/azure/scsi1/lun1:
+    table_type: gpt
+    layout: true
+    overwrite: false
+
+fs_setup:
+ - label: 'Data Storage'
+   device: /dev/disk/azure/scsi1/lun1
+   partition: 'any'
+   filesystem: ext4
+
+mounts:
+ - [ /dev/disk/azure/scsi1/lun1-part1, /data, "ext4", "defaults,nofail", "0", "2" ]
 
 write_files:
  - path: /etc/docker/daemon.json
@@ -6,11 +20,12 @@ write_files:
    owner: root:root
    content: |
       {
+        "data-root": "/data/docker",
         "experimental": true,        
         "icc": false,
         "metrics-addr": "0.0.0.0:9323",
-        "userland-proxy": false,
-        "no-new-privileges": true
+        "no-new-privileges": true,
+        "userland-proxy": false
       }
  - path: /etc/cron.weekly/docker
    permissions: '0755'
@@ -19,13 +34,13 @@ write_files:
        #!/bin/sh -e
        # prune docker system
        /usr/bin/docker system prune -af > /var/log/docker-system-prune.log
- - path: /etc/cron.daily/lun0-discard
+ - path: /etc/cron.daily/lun1-discard
    permissions: '0755'
    owner: root:root
    content: |
        #!/bin/sh -e
        # discard unused blocks from mounted device
-       /sbin/fstrim -v /var/lib/docker > /var/log/lun0-discard-block.log   
+       /sbin/fstrim -v /data > /var/log/lun1-discard-block.log   
 
 packages:
  - software-properties-common

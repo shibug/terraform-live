@@ -9,7 +9,7 @@ users:
 final_message: "The system is finally up, after $UPTIME seconds"
 
 write_files:
- - path: /etc/ssh/sshd_config/10-port.conf
+ - path: /etc/ssh/sshd_config.d/10-port.conf
    permissions: '0644'
    owner: root:root
    content: |       
@@ -47,7 +47,6 @@ write_files:
        echo 'DISABLE_UPDATE_PROMPT="true"' >> ~/.zshrc
        echo "alias cls='clear'" >> ~/.zshrc
        echo "alias cat='/usr/local/bin/ccat'" >> ~/.zshrc
-       echo "alias az='docker run -u $(id -u):$(id -g) -v $HOME:/home/az -e HOME=/home/az --rm -it mcr.microsoft.com/azure-cli az'" >> ~/.zshrc
        echo "alias dcp='docker container prune -f'" >> ~/.zshrc
        echo "alias dip='docker image prune -f'" >> ~/.zshrc
        echo "alias dke='docker exec -it'" >> ~/.zshrc
@@ -55,7 +54,6 @@ write_files:
        echo "alias dps='docker ps'" >> ~/.zshrc
        echo "alias drm='docker rm -fv'" >> ~/.zshrc
        echo "alias dlf='docker logs -f'" >> ~/.zshrc
-       #echo "alias cardano-cli='docker run -it --rm --entrypoint /bin/cardano-cli -v /home/groot/cardano-node:/cardano -e CARDANO_NODE_SOCKET_PATH=/cardano/db/socket inputoutput/cardano-node:1.27.0'" >> ~/.zshrc
        echo 'export SHELL=`which zsh`' >> ~/.bash_profile
        echo '[ -z "$ZSH_VERSION" ] && exec "$SHELL" -l' >> ~/.bash_profile
 
