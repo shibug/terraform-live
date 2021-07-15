@@ -17,7 +17,7 @@ data "cloudinit_config" "default" {
   }
   part {
     content_type = "text/cloud-config"
-    content      = file("${path.module}/templates/docker.yml")
+    content      = templatefile("${path.module}/templates/docker.tpl", { keep_disk = var.keep_disk })
     merge_type   = "list(append)+dict(recurse_array)+str()"
   }
   part {

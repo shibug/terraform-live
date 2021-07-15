@@ -39,10 +39,12 @@ apt:
       keyserver: https://download.docker.com/linux/ubuntu/gpg
 
 runcmd:
- - parted /dev/sdb --script mklabel gpt mkpart xfspart xfs 0% 100%
- - mkfs.xfs /dev/sdb1
- - partprobe /dev/sdb1
+%{if keep_disk == false ~}
+ - echo ';' | sfdisk /dev/disk/azure/scsi1/lun1
+ - partprobe
+ - mkfs.ext4 /dev/disk/azure/scsi1/lun1-part1 -L 'Data Storage'
+%{ endif ~} 
  - mkdir /data
- - mount /dev/sdb1 /data
- - echo "UUID=$(blkid | grep sdb | cut -d ' ' -f 2 | cut -c7-42)   /data   xfs   defaults,nofail,nobarrier   1   2" >> /etc/fstab
+ - echo "UUID=$(blkid /dev/disk/azure/scsi1/lun1-part1 -s UUID -o value) /data ext4 defaults,nofail,nobarrier 0 2" >> /etc/fstab
+ - mount -a
  - apt-get install -y docker-ce docker-ce-cli containerd.io
