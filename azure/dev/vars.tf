@@ -37,5 +37,5 @@ variable "windows_admin_password" {
 variable "keep_disk" {
   type        = bool
   description = "Prevents deleting storage disk when a VM is re-provisioned"
-  default     = false
+  default     = true
 }

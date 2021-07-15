@@ -40,9 +40,9 @@ apt:
 
 runcmd:
 %{if keep_disk == false ~}
- - echo ';' | sfdisk /dev/disk/azure/scsi1/lun1
- - partprobe
+ - parted /dev/disk/azure/scsi1/lun1 --script mklabel gpt mkpart ext4part ext4 0% 100%
  - mkfs.ext4 /dev/disk/azure/scsi1/lun1-part1 -L 'Data Storage'
+ - partprobe /dev/disk/azure/scsi1/lun1-part1
 %{ endif ~} 
  - mkdir /data
  - echo "UUID=$(blkid /dev/disk/azure/scsi1/lun1-part1 -s UUID -o value) /data ext4 defaults,nofail,nobarrier 0 2" >> /etc/fstab
