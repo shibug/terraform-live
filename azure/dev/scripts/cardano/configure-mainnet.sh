@@ -1,5 +1,5 @@
 #8. Start the nodes
-docker run -d -h bp.mainnetcardano.mylo.farm --name cardano-bp -p 6000:6000 -p 12781:12781 -p 12798:12798 --restart on-failure:3 --security-opt="no-new-privileges=true" \
+docker run -d -h bp.cardano.mylo.farm --name cardano-bp -p 6000:6000 -p 12781:12781 -p 12798:12798 --restart on-failure:3 --security-opt="no-new-privileges=true" \
 	-e NETWORK=mainnet -e POOL_DIR=/opt/cardano/cnode/priv -v /data/cardano/sockets:/opt/cardano/cnode/sockets -v /data/cardano/priv:/opt/cardano/cnode/priv -v /data/cardano/db:/opt/cardano/cnode/db \
     -v /data/cardano/logs:/opt/cardano/cnode/logs -v /data/cardano/config/mainnet-topology.json:/opt/cardano/cnode/files/topology.json shibug/cardano-node:1.27.0
 
@@ -18,21 +18,69 @@ cardano-cli node key-gen-KES --verification-key-file kes.vkey --signing-key-file
 export CARDANO_NODE_SOCKET_PATH=/opt/cardano/cnode/sockets/node0.socket
 slotsPerKESPeriod=$(cat /opt/cardano/cnode/files/genesis.json | jq -r '.slotsPerKESPeriod')
 echo slotsPerKESPeriod: ${slotsPerKESPeriod}
-slotNo=$(cardano-cli query tip --testnet-magic $(cat /opt/cardano/cnode/files/genesis.json | jq -r .networkMagic) | jq -r '.slot')
+slotNo=$(cardano-cli query tip --mainnet | jq -r '.slot')
 echo slotNo: ${slotNo}
 kesPeriod=$((${slotNo} / ${slotsPerKESPeriod}))
 echo kesPeriod: ${kesPeriod}
 startKesPeriod=${kesPeriod}
 echo startKesPeriod: ${startKesPeriod}
 
+cardano-cli node key-gen-VRF --verification-key-file vrf.vkey --signing-key-file vrf.skey
+chmod 400 vrf.skey
+
+mv kes.skey hot.skey
+mv node.cert op.cert
+
 #10 Setup payment and stake keys
-cardano-cli query protocol-parameters --testnet-magic $(cat /opt/cardano/cnode/files/genesis.json | jq -r .networkMagic)  --out-file params.json
+cardano-cli query protocol-parameters --mainnet --out-file params.json
+cardano-cli query utxo --address $(cat payment.addr) --mainnet
 
 #11 Register your stake address
-currentSlot=$(cardano-cli query tip --testnet-magic $(cat /opt/cardano/cnode/files/genesis.json | jq -r .networkMagic) | jq -r '.slot')
+currentSlot=$(cardano-cli query tip --mainnet | jq -r '.slot')
 echo Current Slot: $currentSlot
-cardano-cli query utxo --address $(cat payment.addr) --testnet-magic $(cat /opt/cardano/cnode/files/genesis.json | jq -r .networkMagic) > fullUtxo.out
+cardano-cli query utxo --address $(cat payment.addr) --mainnet > fullUtxo.out
+tail -n +3 fullUtxo.out | sort -k3 -nr > balance.out
+cat balance.out
 
+tx_in=""
+total_balance=0
+while read -r utxo; do
+    in_addr=$(awk '{ print $1 }' <<< "${utxo}")
+    idx=$(awk '{ print $2 }' <<< "${utxo}")
+    utxo_balance=$(awk '{ print $3 }' <<< "${utxo}")
+    total_balance=$((${total_balance}+${utxo_balance}))
+    echo TxHash: ${in_addr}#${idx}
+    echo ADA: ${utxo_balance}
+    tx_in="${tx_in} --tx-in ${in_addr}#${idx}"
+done < balance.out
+txcnt=$(cat balance.out | wc -l)
+echo Total ADA balance: ${total_balance}
+echo Number of UTXOs: ${txcnt}
+
+stakeAddressDeposit=$(cat params.json | jq -r '.stakeAddressDeposit')
+echo stakeAddressDeposit : $stakeAddressDeposit
+
+cardano-cli transaction build-raw ${tx_in} --tx-out $(cat payment.addr)+0 --invalid-hereafter $(( ${currentSlot} + 10000)) --fee 0 --out-file tx.tmp --certificate stake.cert
+
+fee=$(cardano-cli transaction calculate-min-fee \
+    --tx-body-file tx.tmp \
+    --tx-in-count ${txcnt} \
+    --tx-out-count 1 \
+    --mainnet \
+    --witness-count 2 \
+    --byron-witness-count 0 \
+    --protocol-params-file params.json | awk '{ print $1 }')
+echo fee: $fee
+
+txOut=$((${total_balance}-${stakeAddressDeposit}-${fee}))
+echo Change Output: ${txOut}
+
+cardano-cli transaction build-raw ${tx_in} --tx-out $(cat payment.addr)+${txOut} --invalid-hereafter $(( ${currentSlot} + 10000)) --fee ${fee} --certificate-file stake.cert --out-file tx.raw
+
+cardano-cli transaction submit --tx-file tx.signed --mainnet
+
+#12 Register your stake pool
+cardano-cli stake-pool metadata-hash --pool-metadata-file poolMetaData.json > poolMetaDataHash.txt
 
 #Air-gapped node
 docker pull shibug/cardano-node:1.27.0
@@ -43,9 +91,10 @@ dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 node issue
 #10 Setup payment and stake keys
 dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 address key-gen --verification-key-file /keys/payment.vkey --signing-key-file /keys/payment.skey
 dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 stake-address key-gen --verification-key-file /keys/stake.vkey --signing-key-file /keys/stake.skey
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 stake-address build --stake-verification-key-file /keys/stake.vkey --out-file /keys/stake.addr --testnet-magic 1097911063
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 address build --payment-verification-key-file /keys/payment.vkey --stake-verification-key-file /keys/stake.vkey --out-file /keys/payment.addr --testnet-magic 1097911063
-scp -P 22 payment.addr groot@bp.cardano.mylo.farm:/data/cardano/priv/
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 stake-address build --stake-verification-key-file /keys/stake.vkey --out-file /keys/stake.addr --mainnet
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 address build --payment-verification-key-file /keys/payment.vkey --stake-verification-key-file /keys/stake.vkey --out-file /keys/payment.addr --mainnet
+scp payment.addr bp.cardano.mylo.farm:/data/cardano/priv/
 
 #11 Register your stake address
 dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 stake-address registration-certificate --stake-verification-key-file /keys/stake.vkey --out-file /keys/stake.cert
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 transaction sign --tx-body-file /keys/tx.raw --signing-key-file /keys/payment.skey --signing-key-file /keys/stake.skey --mainnet --out-file /keys/tx.signed
