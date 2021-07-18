@@ -18,7 +18,7 @@ write_files:
        echo export NODE_BUILD_NUM=$(curl https://hydra.iohk.io/job/Cardano/iohk-nix/cardano-deployment/latest-finished/download/1/index.html | grep -e "build" | sed 's/.*build\/\([0-9]*\)\/download.*/\1/g') >> ${HOME}/.zshrc
        source ${HOME}/.zshrc
 
-       mkdir -p ${NODE_HOME}/config ${NODE_HOME}/priv ${NODE_HOME}/logs ${NODE_HOME}/db ${NODE_HOME}/sockets ${NODE_HOME}/scripts
+       mkdir -p ${NODE_HOME}/config ${NODE_HOME}/priv ${NODE_HOME}/logs ${NODE_HOME}/db ${NODE_HOME}/sockets ${NODE_HOME}/scripts ${NODE_HOME}/temp
        cd ${NODE_HOME}/config
        wget -N https://hydra.iohk.io/build/${NODE_BUILD_NUM}/download/1/${NODE_CONFIG}-byron-genesis.json
        wget -N https://hydra.iohk.io/build/${NODE_BUILD_NUM}/download/1/${NODE_CONFIG}-topology.json
