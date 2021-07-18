@@ -1,3 +1,6 @@
+#----------------------------------------------------------------------------------
+# COMMON
+#----------------------------------------------------------------------------------
 #8. Start the nodes
 docker run -d -h bp.cardano.mylo.farm --name cardano-bp -p 6000:6000 -p 12781:12781 -p 12798:12798 --restart on-failure:3 --security-opt="no-new-privileges=true" \
 	-e NETWORK=mainnet -e POOL_DIR=/opt/cardano/cnode/priv -v /data/cardano/sockets:/opt/cardano/cnode/sockets -v /data/cardano/priv:/opt/cardano/cnode/priv -v /data/cardano/db:/opt/cardano/cnode/db \
@@ -11,6 +14,9 @@ docker run -d -h rly1.cardano.mylo.farm --name cardano-rly1 -p 6000:6000 -p 1278
 
 dke cardano-rly1 /opt/cardano/cnode/scripts/gLiveView.sh
 
+#----------------------------------------------------------------------------------
+# BLOCK PRODUCER NODE
+#----------------------------------------------------------------------------------
 #9. Generate block-producer keys
 cd $NODE_HOME/priv
 cardano-cli node key-gen-KES --verification-key-file kes.vkey --signing-key-file kes.skey
@@ -82,9 +88,76 @@ cardano-cli transaction submit --tx-file tx.signed --mainnet
 #12 Register your stake pool
 cardano-cli stake-pool metadata-hash --pool-metadata-file poolMetaData.json > poolMetaDataHash.txt
 
-#Air-gapped node
+minPoolCost=$(cat $NODE_HOME/params.json | jq -r .minPoolCost)
+echo minPoolCost: ${minPoolCost}
+
+currentSlot=$(cardano-cli query tip --mainnet | jq -r '.slot')
+echo Current Slot: $currentSlot
+cardano-cli query utxo --address $(cat payment.addr) --mainnet > fullUtxo.out
+tail -n +3 fullUtxo.out | sort -k3 -nr > balance.out
+cat balance.out
+
+tx_in=""
+total_balance=0
+while read -r utxo; do
+    in_addr=$(awk '{ print $1 }' <<< "${utxo}")
+    idx=$(awk '{ print $2 }' <<< "${utxo}")
+    utxo_balance=$(awk '{ print $3 }' <<< "${utxo}")
+    total_balance=$((${total_balance}+${utxo_balance}))
+    echo TxHash: ${in_addr}#${idx}
+    echo ADA: ${utxo_balance}
+    tx_in="${tx_in} --tx-in ${in_addr}#${idx}"
+done < balance.out
+txcnt=$(cat balance.out | wc -l)
+echo Total ADA balance: ${total_balance}
+echo Number of UTXOs: ${txcnt}
+
+stakePoolDeposit=$(cat params.json | jq -r '.stakePoolDeposit')
+echo stakePoolDeposit: $stakePoolDeposit
+
+cardano-cli transaction build-raw \
+    ${tx_in} \
+    --tx-out $(cat payment.addr)+$(( ${total_balance} - ${stakePoolDeposit}))  \
+    --invalid-hereafter $(( ${currentSlot} + 10000)) \
+    --fee 0 \
+    --certificate-file pool.cert \
+    --certificate-file deleg.cert \
+    --out-file tx.tmp
+
+fee=$(cardano-cli transaction calculate-min-fee \
+    --tx-body-file tx.tmp \
+    --tx-in-count ${txcnt} \
+    --tx-out-count 1 \
+    --mainnet \
+    --witness-count 3 \
+    --byron-witness-count 0 \
+    --protocol-params-file params.json | awk '{ print $1 }')
+echo fee: $fee
+
+txOut=$((${total_balance}-${stakePoolDeposit}-${fee}))
+echo txOut: ${txOut}
+
+cardano-cli transaction build-raw \
+    ${tx_in} \
+    --tx-out $(cat payment.addr)+${txOut} \
+    --invalid-hereafter $(( ${currentSlot} + 10000)) \
+    --fee ${fee} \
+    --certificate-file pool.cert \
+    --certificate-file deleg.cert \
+    --out-file tx.raw
+
+cardano-cli transaction submit --tx-file tx.signed --mainnet
+
+#13 Locate your Stake pool ID and verify everything is working
+cardano-cli query stake-snapshot --stake-pool-id $(cat stakepoolid.txt) --mainnet 
+
+#----------------------------------------------------------------------------------
+# AIR-GAPPED NODE
+#----------------------------------------------------------------------------------
 docker pull shibug/cardano-node:1.27.0
 dki --entrypoint cardano-cli shibug/cardano-node:1.27.0 --version
+
+#9 Generate block-producer keys
 dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 node key-gen --cold-verification-key-file /keys/node.vkey --cold-signing-key-file /keys/node.skey --operational-certificate-issue-counter /keys/node.counter
 dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 node issue-op-cert --kes-verification-key-file /keys/kes.vkey --cold-signing-key-file /keys/node.skey --operational-certificate-issue-counter /keys/node.counter --kes-period 233 --out-file /keys/node.cert
 
@@ -98,3 +171,36 @@ scp payment.addr bp.cardano.mylo.farm:/data/cardano/priv/
 #11 Register your stake address
 dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 stake-address registration-certificate --stake-verification-key-file /keys/stake.vkey --out-file /keys/stake.cert
 dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 transaction sign --tx-body-file /keys/tx.raw --signing-key-file /keys/payment.skey --signing-key-file /keys/stake.skey --mainnet --out-file /keys/tx.signed
+
+#12 Register your stake pool
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 stake-pool registration-certificate \
+    --cold-verification-key-file /keys/node.vkey \
+    --vrf-verification-key-file /keys/vrf.vkey \
+    --pool-pledge 1000000000 \
+    --pool-cost 340000000 \
+    --pool-margin 0.019 \
+    --pool-reward-account-verification-key-file /keys/stake.vkey \
+    --pool-owner-stake-verification-key-file /keys/stake.vkey \
+    --mainnet \
+    --single-host-pool-relay rly1.cardano.mylo.farm \
+    --pool-relay-port 6000 \
+    --metadata-url https://git.io/JWozL \
+    --metadata-hash $(cat poolMetaDataHash.txt) \
+    --out-file /keys/pool.cert
+
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 stake-address delegation-certificate \
+    --stake-verification-key-file /keys/stake.vkey \
+    --cold-verification-key-file /keys/node.vkey \
+    --out-file /keys/deleg.cert
+
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 transaction sign \
+    --tx-body-file /keys/tx.raw \
+    --signing-key-file /keys/payment.skey \
+    --signing-key-file /keys/node.skey \
+    --signing-key-file /keys/stake.skey \
+    --mainnet \
+    --out-file /keys/tx.signed
+
+#13 Locate your Stake pool ID and verify everything is working
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 stake-pool id --cold-verification-key-file /keys/node.vkey --output-format hex > stakepoolid.txt
+cat stakepoolid.txt    
