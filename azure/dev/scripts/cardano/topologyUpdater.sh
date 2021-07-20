@@ -144,6 +144,6 @@ if [[ ${TU_FETCH} = "Y" ]]; then
     done
     echo "${topo}" | jq -r . >/dev/null 2>&1 && echo "${topo}" > "${TOPOLOGY}".tmp
   fi
-  mv "${TOPOLOGY}".tmp "../temp/${TOPOLOGY}"
+  mv "${TOPOLOGY}".tmp "${CNODE_HOME}/temp/topology.json"
 fi
 exit 0

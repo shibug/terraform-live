@@ -5,6 +5,15 @@ packages:
  - jq
 
 write_files:
+# - path: /etc/cron.daily/cardano-relay
+#   permissions: '0755'
+#   owner: root:root
+#   content: |       
+#       #!/bin/sh -e
+#
+#       # Update topology file and restart relay container
+#       mv -f /data/cardano/temp/topology.json /data/cardano/config/mainnet-topology.json > /var/log/cardano-relay.log 2>&1
+#       docker restart cardano-rly1 >> /var/log/cardano-relay.log 2>&1
  - path: /usr/local/bin/configureCardanoNodes
    permissions: '0755'
    owner: root:users
