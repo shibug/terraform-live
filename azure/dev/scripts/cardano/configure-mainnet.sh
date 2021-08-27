@@ -17,6 +17,14 @@ docker run -d -h rly1.cardano.mylo.farm --name cardano-rly1 -p 6000:6000 -p 1278
 
 dke cardano-rly1 /opt/cardano/cnode/scripts/gLiveView.sh
 
+docker run -d -h rly2.cardano.mylo.farm --name cardano-rly2 -p 6000:6000 -p 12781:12781 -p 12798:12798 --restart on-failure:3 \
+    --security-opt="no-new-privileges=true" -e NETWORK=mainnet -v /data/cardano/sockets:/opt/cardano/cnode/sockets \
+    -v /data/cardano/priv:/opt/cardano/cnode/priv -v /data/cardano/db:/opt/cardano/cnode/db -v /data/cardano/logs:/opt/cardano/cnode/logs \
+    -v /data/cardano/temp:/opt/cardano/cnode/temp -v /data/cardano/config/mainnet-topology.json:/opt/cardano/cnode/files/topology.json \
+    -v /data/cardano/scripts/topologyUpdater.sh:/opt/cardano/cnode/scripts/topologyUpdater.sh shibug/cardano-node:1.27.0
+
+dke cardano-rly2 /opt/cardano/cnode/scripts/gLiveView.sh
+
 #----------------------------------------------------------------------------------
 # BLOCK PRODUCER NODE
 #----------------------------------------------------------------------------------
@@ -206,4 +214,18 @@ dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 transactio
 
 #13 Locate your Stake pool ID and verify everything is working
 dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 stake-pool id --cold-verification-key-file /keys/node.vkey --output-format hex > stakepoolid.txt
-cat stakepoolid.txt    
+cat stakepoolid.txt 
+
+#----------------------------------------------------------------------------------
+# RELAY NODE
+#----------------------------------------------------------------------------------
+#14. Configure your topology files
+
+#Add to /etc/crontab the following line
+13 * * * * groot docker exec -i cardano-rly2 /opt/cardano/cnode/scripts/topologyUpdater.sh
+
+Create a file: /etc/cron.daily/cardano-relay and add the content below:
+#!/bin/sh -e
+# Update topology file and restart relay container
+mv -f /data/cardano/temp/topology.json /data/cardano/config/mainnet-topology.json > /var/log/cardano-relay.log 2>&1
+docker restart cardano-rly1 >> /var/log/cardano-relay.log 2>&1
