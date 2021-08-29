@@ -229,3 +229,10 @@ Create a file: /etc/cron.daily/cardano-relay and add the content below:
 # Update topology file and restart relay container
 mv -f /data/cardano/temp/topology.json /data/cardano/config/mainnet-topology.json > /var/log/cardano-relay.log 2>&1
 docker restart cardano-rly1 >> /var/log/cardano-relay.log 2>&1
+
+#----------------------------------------------------------------------------------
+# MISCELLENEOUS
+#----------------------------------------------------------------------------------
+#How to delete files older than 3 days
+find /data/cardano/logs/archive/* -mtime +3 -exec ls -ltr {} \;
+find /data/cardano/logs/archive/* -mtime +3 -exec rm {} \;
