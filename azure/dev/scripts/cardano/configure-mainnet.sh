@@ -13,6 +13,7 @@ docker run -d -h rly1.cardano.mylo.farm --name cardano-rly1 -p 6000:6000 -p 1278
     --security-opt="no-new-privileges=true" -e NETWORK=mainnet -v /data/cardano/sockets:/opt/cardano/cnode/sockets \
     -v /data/cardano/priv:/opt/cardano/cnode/priv -v /data/cardano/db:/opt/cardano/cnode/db -v /data/cardano/logs:/opt/cardano/cnode/logs \
     -v /data/cardano/temp:/opt/cardano/cnode/temp -v /data/cardano/config/mainnet-topology.json:/opt/cardano/cnode/files/topology.json \
+    -v /data/cardano/config/mainnet-shelley-genesis.json:/opt/cardano/cnode/files/shelley-genesis.json \
     -v /data/cardano/scripts/topologyUpdater.sh:/opt/cardano/cnode/scripts/topologyUpdater.sh shibug/cardano-node:1.27.0
 
 dke cardano-rly1 /opt/cardano/cnode/scripts/gLiveView.sh
@@ -21,6 +22,7 @@ docker run -d -h rly2.cardano.mylo.farm --name cardano-rly2 -p 6000:6000 -p 1278
     --security-opt="no-new-privileges=true" -e NETWORK=mainnet -v /data/cardano/sockets:/opt/cardano/cnode/sockets \
     -v /data/cardano/priv:/opt/cardano/cnode/priv -v /data/cardano/db:/opt/cardano/cnode/db -v /data/cardano/logs:/opt/cardano/cnode/logs \
     -v /data/cardano/temp:/opt/cardano/cnode/temp -v /data/cardano/config/mainnet-topology.json:/opt/cardano/cnode/files/topology.json \
+    -v /data/cardano/config/mainnet-shelley-genesis.json:/opt/cardano/cnode/files/shelley-genesis.json \
     -v /data/cardano/scripts/topologyUpdater.sh:/opt/cardano/cnode/scripts/topologyUpdater.sh shibug/cardano-node:1.27.0
 
 dke cardano-rly2 /opt/cardano/cnode/scripts/gLiveView.sh
@@ -187,13 +189,15 @@ dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 transactio
 dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.27.0 stake-pool registration-certificate \
     --cold-verification-key-file /keys/node.vkey \
     --vrf-verification-key-file /keys/vrf.vkey \
-    --pool-pledge 1000000000 \
+    --pool-pledge 5000000000 \
     --pool-cost 340000000 \
     --pool-margin 0.019 \
     --pool-reward-account-verification-key-file /keys/stake.vkey \
     --pool-owner-stake-verification-key-file /keys/stake.vkey \
     --mainnet \
     --single-host-pool-relay rly1.cardano.mylo.farm \
+    --pool-relay-port 6000 \
+    --single-host-pool-relay rly2.cardano.mylo.farm \
     --pool-relay-port 6000 \
     --metadata-url https://git.io/JWozL \
     --metadata-hash $(cat poolMetaDataHash.txt) \
@@ -223,6 +227,7 @@ cat stakepoolid.txt
 
 #Add to /etc/crontab the following line
 13 * * * * groot docker exec -i cardano-rly2 /opt/cardano/cnode/scripts/topologyUpdater.sh
+23 * * * * groot docker exec -i cardano-rly2 /opt/cardano/cnode/scripts/topologyUpdater.sh
 
 Create a file: /etc/cron.daily/cardano-relay and add the content below:
 #!/bin/sh -e
