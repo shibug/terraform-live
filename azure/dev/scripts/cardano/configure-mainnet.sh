@@ -3,27 +3,27 @@
 #----------------------------------------------------------------------------------
 #8. Start the nodes
 docker run -d -h bp.cardano.mylo.farm --name cardano-bp -p 6000:6000 -p 12781:12781 -p 12798:12798 --restart on-failure:3 \
-    --security-opt="no-new-privileges=true" -e NETWORK=mainnet -e POOL_DIR=/opt/cardano/cnode/priv -v /data/cardano/sockets:/opt/cardano/cnode/sockets \
-    -v /data/cardano/priv:/opt/cardano/cnode/priv -v /data/cardano/db:/opt/cardano/cnode/db -v /data/cardano/logs:/opt/cardano/cnode/logs \
-    -v /data/cardano/config/mainnet-topology.json:/opt/cardano/cnode/files/topology.json shibug/cardano-node:1.27.0
+    --security-opt="no-new-privileges=true" -e NETWORK=mainnet -e POOL_DIR=/opt/cardano/cnode/priv \
+    -v /data/cardano/sockets:/opt/cardano/cnode/sockets -v /data/cardano/priv:/opt/cardano/cnode/priv \
+    -v /data/cardano/db:/opt/cardano/cnode/db -v /data/cardano/logs:/opt/cardano/cnode/logs \
+    -v /data/cardano/config/mainnet-topology.json:/opt/cardano/cnode/files/topology.json \
+    -v /data/cardano/config/mainnet-config.json:/opt/cardano/cnode/files/config.json shibug/cardano-node:1.29.0
 
 dke cardano-bp /opt/cardano/cnode/scripts/gLiveView.sh
 
 docker run -d -h rly1.cardano.mylo.farm --name cardano-rly1 -p 6000:6000 -p 12781:12781 -p 12798:12798 --restart on-failure:3 \
     --security-opt="no-new-privileges=true" -e NETWORK=mainnet -v /data/cardano/sockets:/opt/cardano/cnode/sockets \
-    -v /data/cardano/priv:/opt/cardano/cnode/priv -v /data/cardano/db:/opt/cardano/cnode/db -v /data/cardano/logs:/opt/cardano/cnode/logs \
-    -v /data/cardano/temp:/opt/cardano/cnode/temp -v /data/cardano/config/mainnet-topology.json:/opt/cardano/cnode/files/topology.json \
-    -v /data/cardano/config/mainnet-shelley-genesis.json:/opt/cardano/cnode/files/shelley-genesis.json \
-    -v /data/cardano/scripts/topologyUpdater.sh:/opt/cardano/cnode/scripts/topologyUpdater.sh shibug/cardano-node:1.27.0
+    -v /data/cardano/db:/opt/cardano/cnode/db -v /data/cardano/logs:/opt/cardano/cnode/logs -v /data/cardano/temp:/opt/cardano/cnode/temp \
+    -v /data/cardano/config/mainnet-topology.json:/opt/cardano/cnode/files/topology.json \
+    -v /data/cardano/scripts/topologyUpdater.sh:/opt/cardano/cnode/scripts/topologyUpdater.sh shibug/cardano-node:1.29.0
 
 dke cardano-rly1 /opt/cardano/cnode/scripts/gLiveView.sh
 
 docker run -d -h rly2.cardano.mylo.farm --name cardano-rly2 -p 6000:6000 -p 12781:12781 -p 12798:12798 --restart on-failure:3 \
     --security-opt="no-new-privileges=true" -e NETWORK=mainnet -v /data/cardano/sockets:/opt/cardano/cnode/sockets \
-    -v /data/cardano/priv:/opt/cardano/cnode/priv -v /data/cardano/db:/opt/cardano/cnode/db -v /data/cardano/logs:/opt/cardano/cnode/logs \
-    -v /data/cardano/temp:/opt/cardano/cnode/temp -v /data/cardano/config/mainnet-topology.json:/opt/cardano/cnode/files/topology.json \
-    -v /data/cardano/config/mainnet-shelley-genesis.json:/opt/cardano/cnode/files/shelley-genesis.json \
-    -v /data/cardano/scripts/topologyUpdater.sh:/opt/cardano/cnode/scripts/topologyUpdater.sh shibug/cardano-node:1.27.0
+    -v /data/cardano/db:/opt/cardano/cnode/db -v /data/cardano/logs:/opt/cardano/cnode/logs -v /data/cardano/temp:/opt/cardano/cnode/temp \
+    -v /data/cardano/config/mainnet-topology.json:/opt/cardano/cnode/files/topology.json \
+    -v /data/cardano/scripts/topologyUpdater.sh:/opt/cardano/cnode/scripts/topologyUpdater.sh shibug/cardano-node:1.29.0
 
 dke cardano-rly2 /opt/cardano/cnode/scripts/gLiveView.sh
 
@@ -229,11 +229,13 @@ cat stakepoolid.txt
 13 * * * * groot docker exec -i cardano-rly2 /opt/cardano/cnode/scripts/topologyUpdater.sh
 23 * * * * groot docker exec -i cardano-rly2 /opt/cardano/cnode/scripts/topologyUpdater.sh
 
-Create a file: /etc/cron.daily/cardano-relay and add the content below:
+#Create a file: /etc/cron.daily/cardano-relay and add the content below:
 #!/bin/sh -e
 # Update topology file and restart relay container
 mv -f /data/cardano/temp/topology.json /data/cardano/config/mainnet-topology.json > /var/log/cardano-relay.log 2>&1
 docker restart cardano-rly1 >> /var/log/cardano-relay.log 2>&1
+
+#chmod +x /etc/cron.daily/cardano-relay
 
 #----------------------------------------------------------------------------------
 # MISCELLENEOUS
@@ -241,3 +243,29 @@ docker restart cardano-rly1 >> /var/log/cardano-relay.log 2>&1
 #How to delete files older than 3 days
 find /data/cardano/logs/archive/* -mtime +3 -exec ls -ltr {} \;
 find /data/cardano/logs/archive/* -mtime +3 -exec rm {} \;
+
+#How to extend disk size
+Stop the VM.
+Increase the size of the OS disk from the portal.
+Restart the VM, and then sign in to the VM as a root user.
+dps
+sudo -s
+systemctl stop docker
+systemctl status docker
+df -Th
+mount | grep "/dev/sdb"
+umount /dev/sdb1
+mount | grep "/dev/sdb"
+df -Th
+parted /dev/sdb
+    print
+    Fix
+    rm 1
+    mkpart ext4part 1049kB 100%
+    print
+    quit
+e2fsck -f /dev/sdb1
+resize2fs /dev/sdb1
+mount | grep "/dev/sdb"
+mount -a
+mount | grep "/dev/sdb"
