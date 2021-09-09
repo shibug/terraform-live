@@ -220,7 +220,7 @@ resource "azurerm_managed_disk" "adarly02" {
   resource_group_name  = azurerm_resource_group.rg.name
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
-  disk_size_gb         = 32
+  disk_size_gb         = 64
 
   tags = local.cardano_tags
 }
@@ -243,7 +243,7 @@ resource "azurerm_linux_virtual_machine" "adarly01" {
   name                = "use1ladarly01prod"
   resource_group_name = azurerm_resource_group.useast2.name
   location            = azurerm_resource_group.useast2.location
-  size                = "Standard_E2s_v4"
+  size                = "Standard_E2s_v5"
   admin_username      = var.admin_username
   network_interface_ids = [
     azurerm_network_interface.adarly01.id,
