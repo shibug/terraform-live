@@ -1,3 +1,6 @@
+#----------------------------------------------------------------------------------
+# BLOCK PRODUCER NODE
+#----------------------------------------------------------------------------------
 cd $NODE_HOME/priv
 dke cardano-bp bash
 export CARDANO_NODE_SOCKET_PATH=/opt/cardano/cnode/sockets/node0.socket
