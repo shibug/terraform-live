@@ -17,4 +17,4 @@ cardano-cli node key-gen-KES --verification-key-file kes.vkey --signing-key-file
 #----------------------------------------------------------------------------------
 # AIR-GAPPED NODE
 #----------------------------------------------------------------------------------
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.29.0 node issue-op-cert --kes-verification-key-file /keys/kes.vkey --cold-signing-key-file /keys/node.skey --operational-certificate-issue-counter /keys/node.counter --kes-period 319 --out-file /keys/op.cert
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 node issue-op-cert --kes-verification-key-file /keys/kes.vkey --cold-signing-key-file /keys/node.skey --operational-certificate-issue-counter /keys/node.counter --kes-period 319 --out-file /keys/op.cert
