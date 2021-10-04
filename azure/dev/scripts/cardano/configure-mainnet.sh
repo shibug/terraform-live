@@ -241,8 +241,8 @@ docker restart cardano-rly1 >> /var/log/cardano-relay.log 2>&1
 # MISCELLENEOUS
 #----------------------------------------------------------------------------------
 #How to delete files older than 3 days
-find /data/cardano/logs/archive/* -mtime +3 -exec ls -ltr {} \;
-find /data/cardano/logs/archive/* -mtime +3 -exec rm {} \;
+find /data/cardano/logs/* -mtime +3 -exec ls -ltr {} \;
+find /data/cardano/logs/* -mtime +3 -exec rm {} \;
 
 #How to extend disk size
 Stop the VM.
