@@ -10,6 +10,8 @@ cardano-cli query protocol-parameters --mainnet --out-file params.json
 
 cardano-cli stake-pool metadata-hash --pool-metadata-file poolMetaData.json > poolMetaDataHash.txt
 
+cardano-cli query utxo --address $(cat payment.addr) --mainnet
+
 currentSlot=$(cardano-cli query tip --mainnet | jq -r '.slot')
 echo Current Slot: $currentSlot
 cardano-cli query utxo --address $(cat payment.addr) --mainnet > fullUtxo.out
@@ -70,12 +72,10 @@ cardano-cli transaction submit --tx-file tx.signed --mainnet
 cd /Users/shibugope/Dropbox/keys/cardano/mainnet
 scp bp.cardano.mylo.farm:/data/cardano/priv/poolMetaDataHash.txt .
 
-cardano-cli query utxo --address $(cat payment.addr) --mainnet
-
 dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 stake-pool registration-certificate \
     --cold-verification-key-file /keys/node.vkey \
     --vrf-verification-key-file /keys/vrf.vkey \
-    --pool-pledge 15000000000 \
+    --pool-pledge 25000000000 \
     --pool-cost 340000000 \
     --pool-margin 0.019 \
     --pool-reward-account-verification-key-file /keys/stake.vkey \

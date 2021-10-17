@@ -52,7 +52,7 @@ resource "azurerm_virtual_network" "useast2" {
   name                = "vn-useast2"
   location            = azurerm_resource_group.useast2.location
   resource_group_name = azurerm_resource_group.useast2.name
-  address_space       = [var.cidrblock]
+  address_space       = ["10.0.0.0/18"]
 
   tags = local.common_tags
 }

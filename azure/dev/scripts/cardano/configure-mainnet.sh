@@ -229,6 +229,8 @@ cat stakepoolid.txt
 13 * * * * groot docker exec -i cardano-rly1 /opt/cardano/cnode/scripts/topologyUpdater.sh
 23 * * * * groot docker exec -i cardano-rly2 /opt/cardano/cnode/scripts/topologyUpdater.sh
 
+#Change cron.daily schedule in crontab to be 12 hours apart
+
 #Create a file: /etc/cron.daily/cardano-relay and add the content below:
 #!/bin/sh -e
 # Update topology file and restart relay container
