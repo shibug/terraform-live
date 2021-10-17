@@ -211,6 +211,10 @@ resource "azurerm_managed_disk" "adarly01" {
   create_option        = "Empty"
   disk_size_gb         = 32
 
+  lifecycle {
+    prevent_destroy = true
+  }
+  
   tags = local.cardano_tags
 }
 
@@ -222,6 +226,10 @@ resource "azurerm_managed_disk" "adarly02" {
   create_option        = "Empty"
   disk_size_gb         = 64
 
+  lifecycle {
+    prevent_destroy = true
+  }
+
   tags = local.cardano_tags
 }
 
@@ -232,6 +240,10 @@ resource "azurerm_managed_disk" "adabp" {
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
   disk_size_gb         = 32
+
+  lifecycle {
+    prevent_destroy = true
+  }
 
   tags = local.cardano_tags
 }
@@ -269,6 +281,10 @@ resource "azurerm_linux_virtual_machine" "adarly01" {
 
   custom_data = data.cloudinit_config.default.rendered
 
+  lifecycle {
+    ignore_changes = [custom_data]
+  }
+
   tags = local.cardano_tags
 }
 
@@ -302,6 +318,10 @@ resource "azurerm_linux_virtual_machine" "adarly02" {
 
   custom_data = data.cloudinit_config.default.rendered
 
+  lifecycle {
+    ignore_changes = [custom_data]
+  }
+
   tags = local.cardano_tags
 }
 
@@ -334,6 +354,10 @@ resource "azurerm_linux_virtual_machine" "adabp" {
   }
 
   custom_data = data.cloudinit_config.default.rendered
+
+  lifecycle {
+    ignore_changes = [custom_data]
+  }
 
   tags = local.cardano_tags
 }
