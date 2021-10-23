@@ -124,7 +124,4 @@ locals {
   theta_tags = {
     crypto = "theta"
   }
-  eth_tags = {
-    crypto = "ethereum"
-  }
 }

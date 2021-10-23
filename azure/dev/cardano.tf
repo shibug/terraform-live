@@ -214,7 +214,7 @@ resource "azurerm_managed_disk" "adarly01" {
   lifecycle {
     prevent_destroy = true
   }
-  
+
   tags = local.cardano_tags
 }
 

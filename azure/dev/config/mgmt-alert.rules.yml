@@ -1,0 +1,236 @@
+groups:
+- name: alert.rules
+  rules:
+  # Alert for any node that is unreachable for >5 minutes.
+  - alert: NodeDown
+    expr: avg_over_time(up{job="nodes"} [2m]) < 0.9
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description: 'Node {{ $labels.node }}.ct.bnsf.com has been down for more than 5 minutes.'
+      summary: Node {{ $labels.node }} down
+
+  # Alert for any node whose free memory is less than 10% for >5 minutes.
+  - alert: NodeMemoryLow
+    expr: 100 * (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) < 25
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description: Free memory on node {{ $labels.instance }} is less than 25%. Increase
+        memory of the node or reduce memory usage by stopping applications
+      summary: Low memory on node {{ $labels.instance }}
+            
+  # Alert for any node whose free memory is less than 10% for >5 minutes.
+  - alert: NodeLoadHigh
+    expr: node_load5 > count(node_cpu_seconds_total{mode="system"}) without (cpu, mode)*2
+    for: 15m
+    labels:
+      severity: warning
+    annotations:
+      description: Node {{ $labels.instance }} has been very busy for more than 15 minutes
+      summary: High System load on node {{ $labels.instance }}
+
+  # Alert for any disk when disk space is 75% full for >5 minutes.
+  - alert: NodeDiskSpaceLow
+    expr: 100 - 100 * (node_filesystem_avail_bytes{mountpoint=~"/var/lib/docker|/opt/data"}
+      / node_filesystem_size_bytes{mountpoint=~"/var/lib/docker|/opt/data"}) > 75
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description: 'Disk {{ $labels.mountpoint }} usage on node {{ $labels.instance }} is high at {{ $value | humanize }}%.  Add more disk space to ensure business continuity'
+      summary: Low disk space on node {{ $labels.instance }}
+
+  # Alert for any disk when inode usage is high for > 5 minutes.
+  - alert: NodeInodeUsageHigh
+    expr: 100 - 100 * (node_filesystem_files_free{mountpoint=~"/var/lib/docker|/opt/data"}/node_filesystem_files{mountpoint=~"/var/lib/docker|/opt/data"}) > 50
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description: 'Disk {{ $labels.mountpoint }} Inode usage on node {{ $labels.instance }} is high at {{ $value | humanize }}%.  Please troubleshoot and fix to ensure business continuity'
+      summary: High Inode usage on node {{ $labels.instance }}
+
+  # Alert when a VM is running for more than 180 days
+  - alert: NodeTooOld
+    expr: time()-(node_create_time_seconds{job='nodes', node!~'mdns\\d\\d'}) > 7776000
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: Node {{ $labels.instance }} is too old
+      description: Node {{ $labels.instance }} has been running for {{ $value | humanizeDuration }}, which is more than 90 days.  Please refresh the node to avoid deviating from the golden image.
+      
+  # Alert when containers per worker node is higher than 15
+  - alert: ContainerDensityHigh
+    expr: label_join(avg(engine_daemon_container_states_containers{node=~"\\wwrk\\d\\d",state="running"}) by (job), "service", "", "job") > 15
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: Container density is high
+      description: Average number of running containers per worker node is higher than 15.  Please scale out the cluster by adding new nodes.
+                
+  # Alert when orphan containers are more than 4
+  - alert: OrphanContainers
+    expr: (count(container_cpu_user_seconds_total{swarm_service!~'.+', name=~".+"}) OR vector(0)) > 9
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: Orphan Containers exist
+      description: Orphan containers are not managed by Swarm and if left dangling will consume computing resources.  Kill them manually and determine the source of those containers.
+
+  # Alert when a service memory usage is high
+  - alert: ServiceMemoryUsageHigh
+    expr: label_replace (avg(container_memory_rss{swarm_service!~"portus|background|"} / container_spec_memory_limit_bytes{swarm_service!~"portus|background|"} * 100) BY (swarm_service), "service", "$1", "swarm_service", "(.*)") > 75
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description: '{{ $labels.swarm_service }} service is running low on memory with memory usage at {{ $value | humanize }}%.  Please scale out this service to distribute load.'
+      summary: Service {{ $labels.swarm_service }} memory usage is high.
+
+  # Alert when a service memory usage is high
+  - alert: ServiceMemoryUsageHigh
+    expr: label_replace (avg(container_memory_rss{swarm_service!~"portus|background|"} / container_spec_memory_limit_bytes{swarm_service!~"portus|background|"} * 100) BY (swarm_service), "service", "$1", "swarm_service", "(.*)") > 85
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      description: '{{ $labels.swarm_service }} service is running low on memory with memory usage at {{ $value | humanize }}%.  Please scale out this service to distribute load.'
+      summary: Service {{ $labels.swarm_service }} memory usage is high.
+
+  # Alert when a service cpu usage is high
+  - alert: ServiceCPUUsageHigh
+    expr: avg by (swarm_service) (sum without (cpu) (rate(container_cpu_usage_seconds_total{swarm_service=~'.+'}[5m])*100)) > 75
+    for: 15m
+    labels:
+      severity: warning
+    annotations:
+      description: '{{ $labels.swarm_service }} service CPU usage is high at {{ $value | humanize }}%.  Please scale out this service to distribute load.'
+      summary: CPU usage for {{ $labels.swarm_service }} service is high  
+                             
+  # Alert when few instances of a service is down
+  - alert: AppDown
+    expr: avg(avg_over_time(up{service =~ ".+"} [2m])) without (instance) < 0.9
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description: 'Service {{ $labels.service }} has been down for more than 5 minutes.'
+      summary: Service {{ $labels.service }} down
+
+  # Alert when a service is down
+  - alert: AppDown
+    expr: avg(avg_over_time(up{service =~ ".+"} [2m])) without (instance) == 0
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      description: 'Service {{ $labels.service }} has been down for more than 5 minutes.'
+      summary: Service {{ $labels.service }} down
+      
+  # Alert when Prometheus WAL is corrupted
+  - alert: PrometheusWALCorruption
+    expr: prometheus_tsdb_wal_corruptions_total{job="prometheus"} > 0
+    for: 5m
+    labels: 
+      severity: warning
+    annotations:
+      summary: Prometheus WAL is corrupted    
+      description: Prometheus Write-access-log file is corrupted.  Total number of corruption is {{ $value | humanize }}.  This may result in losing monitoring history.  Your best bet is to shut down Prometheus and remove the entire storage directory. However, you can also try removing individual block directories to resolve the problem. This means losing a time window of around two hours worth of data per block directory.
+          
+  # Alert if Fluentd buffer size is increasing
+  - alert: FluentdBufferSizeIncreasing
+    expr: sum(max_over_time(fluentd_output_status_buffer_queue_length[5m])) by (service, type) > 100
+    for: 15m
+    labels: 
+      severity: warning
+    annotations:
+      description: "Fluentd {{ $labels.type }} buffer maximum size has been increasing.  Troubleshoot or scale out Fluentd to sustain this growth."
+      summary: Fluentd buffer size is increasing
+                 
+  # Alert if too Elasticsearch few nodes are running
+  - alert: ElasticsearchTooFewNodesRunning
+    expr: elasticsearch_cluster_health_number_of_nodes < 3
+    for: 5m
+    labels: 
+      severity: warning
+    annotations:
+      description: "There are less than 3 ElasticSearch nodes running.  Please troubleshoot why a node is not available"
+      summary: ElasticSearch running on less than 3 nodes
+
+  # Alert if Elasticsearch heap usage is over 90%
+  - alert: ElasticsearchHeapTooHigh
+    expr: elasticsearch_jvm_memory_used_bytes{area="heap"} / elasticsearch_jvm_memory_max_bytes{area="heap"} > 0.9
+    for: 15m
+    labels: 
+      severity: critical
+    annotations: 
+      description: "The heap usage is over 90% for 15 minutes"
+      summary: "ElasticSearch node {{$labels.name}} heap usage is high"
+
+  # Alert when build agents are down for >5 minutes.
+  - alert: BuildAgentDown
+    expr: avg_over_time(jenkins_node_offline_value{service="build"} [2m]) > 0.5
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Build agent down for {{ $labels.service }} service"
+      description: "One or more build agents are down.  This may prevent some jobs from building if they depend upon that specific failed agent."
+      
+# Alert when builds are broken
+  - alert: BuildBroken
+    expr: avg_over_time(default_jenkins_builds_last_build_result_ordinal [2m]) > 0.3
+    for: 60m
+    labels:
+      severity: warning
+    annotations:
+      summary: Build is broken for {{ $labels.jenkins_job }}
+      description: 'One or more builds for job: {{ $labels.jenkins_job }} are broken. Please fix it immediately. URL: https://build.ct.bnsf.com/job/{{ $labels.job_context }}'    
+      
+# Alert for an endpoint not responding
+  - alert: EndpointDown
+    expr: avg_over_time(probe_success[2m]) < 0.9
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: Endpoint {{ $labels.service }} down 
+      description: 'Service endpoint {{ $labels.instance }} has been down for more than 5 minutes.'
+      
+# Alert for an Azure Postgres not responding
+  - alert: AzurePostgresDown
+    expr: avg_over_time(pg_up[2m]) < 0.9
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: Azure Postgres is down
+      description: 'PostgreSQL database server on Azure has been down for more than 5 minutes.  Please contact Microsoft Azure customer service'
+
+      
+# Alert for an endpoint being slow
+  - alert: EndpointRespondingSlow
+    expr: avg_over_time(probe_duration_seconds[15m]) > 5
+    for: 15m
+    labels:
+      severity: warning
+    annotations:
+      summary: Endpoint {{ $labels.service }} is slow
+      description: 'Service endpoint {{ $labels.instance }} has been responding slow for past 15 minutes.'
+
+# Alert for an application health down
+  - alert: AppHealthDown
+    expr: avg without (instance) (avg_over_time(app_health[2m])) < 0.9
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description: 'Instance {{ $labels.instance }} of service {{ $labels.service }} has been down
+        for more than 5 minutes per /health'
+      summary: App {{ $labels.service }} not healthy

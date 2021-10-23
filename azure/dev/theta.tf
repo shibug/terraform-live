@@ -48,10 +48,10 @@ resource "azurerm_windows_virtual_machine" "theta-edge" {
   identity {
     type = "SystemAssigned"
   }
-  
+
   lifecycle {
-    ignore_changes = [custom_data]
+    ignore_changes = [resource_group_name, admin_username, admin_password]
   }
-  
+
   tags = local.theta_tags
 }

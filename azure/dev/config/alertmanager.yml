@@ -1,0 +1,342 @@
+--- 
+global: 
+  smtp_from: 'AlertManager <alertmanager@ct.bnsf.com>'
+  smtp_require_tls: false
+  smtp_smarthost: 'internal-mx.rwy.bnsf.com:25'
+  smtp_hello: 'mmng.ct.bnsf.com'
+
+route:
+  receiver: ct-mails
+  group_by: ['alertname', 'env']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 3h 
+  routes:
+  - match_re:
+      alertname: .*(Test|test).*
+    receiver: test-mail
+  - match_re:
+      alertname: .*(IBMMQ).*
+      env: ^(mgmt|prod)$
+    receiver: ibmmq-mail
+  - match_re:
+      alertname: .*(VendorInbound|GPSSuccessRate).*
+      env: ^(mgmt|prod)$
+    receiver: vendorinbound-mail
+  - match_re:
+      alertname: .*(VendorOutboundConsecutiveRetriesTooHigh).*
+      service: vendor-rcx
+      env: ^(mgmt|prod)$
+    receiver: rcx-mail-critical
+  - match_re:
+      alertname: .*(VendorOutboundConsecutiveRetriesTooHigh).*
+      service: vendor-hal
+      env: ^(mgmt|prod)$
+    receiver: hal-mail-critical
+  - match_re:
+      alertname: .*(VendorOutboundConsecutiveRetriesTooHigh).*
+      service: vendor-pti
+      env: ^(mgmt|prod)$
+    receiver: pti-mail-critical
+  - match_re:
+      alertname: .*(VendorOutboundSuccessPercentTooLow).*
+      service: vendor-rcx
+      env: ^(mgmt|prod)$
+    receiver: rcx-mail-warning
+  - match_re:
+      alertname: .*(VendorOutboundSuccessPercentTooLow).*
+      service: vendor-hal
+      env: ^(mgmt|prod)$
+    receiver: hal-mail-warning
+  - match_re:
+      alertname: .*(VendorOutboundSuccessPercentTooLow).*
+      service: vendor-pti
+      env: ^(mgmt|prod)$
+    receiver: pti-mail-warning
+  - match_re:
+      alertname: .*(Remedy).*
+    receiver: remedy-mail
+  - match_re:
+      alertname: .*(ActiveDirectory).*
+    receiver: activedirectory-mail
+  - match_re:
+      alertname: .*(BnsfDns).*
+    receiver: dns-mail
+  - match_re:
+      alertname: .*(RideNotReceiving|GPSPingsNotAvailable).*
+      supplier: RCX
+      env: ^(prod)$
+    receiver: rcx-mail
+  - match_re:
+      alertname: .*(RideNotReceiving|GPSPingsNotAvailable).*
+      supplier: PTI
+      env: ^(prod)$
+    receiver: pti-mail
+  - match_re:
+      alertname: .*(RideNotReceiving|GPSPingsNotAvailable).*
+      supplier: HAL
+      env: ^(prod)$
+    receiver: hal-mail
+  - match:
+      service: bnsf-prod.ep.railcrewxpress.com:443
+    receiver: vendoroutbound-mail
+  - match:
+      service: b2bprd.hallcon.com:443
+    receiver: vendoroutbound-mail
+  - match:
+      service: prod.pti-bnsf1.com:443
+    receiver: vendoroutbound-mail
+  - match_re:
+      alertname: .*(CrewEmployeeApiDown).*
+      env: ^(prod)$
+    receiver: crew-mail-prod
+  - match:
+      service: artifactory.bnsf.com
+    receiver: artifactory-mail
+  - match:
+      service: github.bnsf.com
+    receiver: github-mail
+  - match_re:
+      alertname: .*(BuildBroken).*
+      env: ^(mgmt)$
+    receiver: ct-teams
+  - match_re:
+      severity: ^(critical)$
+      env: ^(mgmt|prod)$
+    receiver: ct-on-call
+  - match_re:
+      env: ^(mgmt|prod)$
+    receiver: ct-non-critical-prod    
+  - match_re:
+      severity: ^(critical|warning|info)$
+    receiver: ct-teams
+
+inhibit_rules: 
+  - source_match: 
+      severity: critical
+    target_match: 
+      severity: warning
+    equal: ['alertname', 'env']
+  - source_match: 
+      severity: warning
+    target_match: 
+      severity: info
+    equal: ['alertname', 'env']
+    
+receivers: 
+  - name: ct-mails
+    email_configs: 
+    - send_resolved: true 
+      to: 'TECHSVCSDLTSCTDev@BNSF.com'
+      html: '{{ template "email.app.html" . }}'
+      headers:
+        Subject: '{{ template "email.app.subject" . }}'
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/All  
+  - name: test-mail
+    email_configs: 
+    - send_resolved: true 
+      to: 'shibu.gope@BNSF.com, maniteja.vankina@bnsf.com'
+      html: '{{ template "email.app.html" . }}'
+      headers:
+        Subject: '{{ template "email.app.subject" . }}'     
+  - name: rcx-mail
+    email_configs: 
+    - send_resolved: true 
+      to: 'SSDLCrewTransportation@BNSF.com, OPRDLRIDEMGRS@BNSF.com, itdepartment@railcrewxpress.com'
+      html: '{{ template "thirdparty.app.html" . }}'
+      headers:
+        Subject: '{{ template "thirdparty.app.subject" . }}'
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/ThirdParty 
+  - name: rcx-mail-critical
+    email_configs: 
+    - send_resolved: true 
+      to: 'SSDLCrewTransportation@BNSF.com, OPRDLRIDEMGRS@BNSF.com, itdepartment@railcrewxpress.com'
+      html: '{{ template "thirdparty.app.html" . }}'
+      headers:
+        Subject: '{{ template "thirdparty.app.subject" . }}'
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/OnCall 
+  - name: rcx-mail-warning
+    email_configs: 
+    - send_resolved: true 
+      to: 'SSDLCrewTransportation@BNSF.com, OPRDLRIDEMGRS@BNSF.com, itdepartment@railcrewxpress.com'
+      html: '{{ template "thirdparty.app.html" . }}'
+      headers:
+        Subject: '{{ template "thirdparty.app.subject" . }}'
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/NonCriticalProd    
+  - name: hal-mail
+    email_configs: 
+    - send_resolved: true 
+      to: 'SSDLCrewTransportation@BNSF.com, OPRDLRIDEMGRS@BNSF.com, bnsfapi@hallcon.com'
+      html: '{{ template "thirdparty.app.html" . }}'
+      headers:
+        Subject: '{{ template "thirdparty.app.subject" . }}'
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/ThirdParty
+  - name: hal-mail-critical
+    email_configs: 
+    - send_resolved: true 
+      to: 'SSDLCrewTransportation@BNSF.com, OPRDLRIDEMGRS@BNSF.com, bnsfapi@hallcon.com'
+      html: '{{ template "thirdparty.app.html" . }}'
+      headers:
+        Subject: '{{ template "thirdparty.app.subject" . }}'
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/OnCall
+  - name: hal-mail-warning
+    email_configs: 
+    - send_resolved: true 
+      to: 'SSDLCrewTransportation@BNSF.com, OPRDLRIDEMGRS@BNSF.com, bnsfapi@hallcon.com'
+      html: '{{ template "thirdparty.app.html" . }}'
+      headers:
+        Subject: '{{ template "thirdparty.app.subject" . }}'
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/NonCriticalProd
+  - name: pti-mail
+    email_configs: 
+    - send_resolved: true 
+      to: 'SSDLCrewTransportation@BNSF.com, OPRDLRIDEMGRS@BNSF.com, samantha.whitmore@unitedevv.com, andrew.melchiors@unitedevv.com, craig.kniese@unitedevv.com'
+      html: '{{ template "thirdparty.app.html" . }}'
+      headers:
+        Subject: '{{ template "thirdparty.app.subject" . }}'
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/ThirdParty
+  - name: pti-mail-critical
+    email_configs: 
+    - send_resolved: true 
+      to: 'SSDLCrewTransportation@BNSF.com, OPRDLRIDEMGRS@BNSF.com, samantha.whitmore@unitedevv.com, andrew.melchiors@unitedevv.com, craig.kniese@unitedevv.com'
+      html: '{{ template "thirdparty.app.html" . }}'
+      headers:
+        Subject: '{{ template "thirdparty.app.subject" . }}'
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/OnCall
+  - name: pti-mail-warning
+    email_configs: 
+    - send_resolved: true 
+      to: 'SSDLCrewTransportation@BNSF.com, OPRDLRIDEMGRS@BNSF.com, samantha.whitmore@unitedevv.com, andrew.melchiors@unitedevv.com, craig.kniese@unitedevv.com'
+      html: '{{ template "thirdparty.app.html" . }}'
+      headers:
+        Subject: '{{ template "thirdparty.app.subject" . }}'
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/NonCriticalProd    
+  - name: ct-teams
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/All   
+  - name: ct-on-call
+    email_configs: 
+    - send_resolved: true 
+      to: 'TECHSVCSDLTSCTDev@BNSF.com'
+      html: '{{ template "email.app.html" . }}'
+      headers:
+        Subject: '{{ template "email.app.subject" . }}'
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/OnCall
+  - name: ct-non-critical-prod
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/NonCriticalProd
+  - name: ibmmq-mail
+    email_configs: 
+    - send_resolved: true 
+      to: 'bnsfmq@us.ibm.com'
+      html: '{{ template "email.app.html" . }}'
+      headers:
+        Subject: '{{ template "email.app.subject" . }}'
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/ThirdParty
+  - name: vendorinbound-mail
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/ThirdParty
+  - name: vendoroutbound-mail
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/ThirdParty
+  - name: crew-mail-prod
+    email_configs:
+    - send_resolved: true
+      to: 'rahul.zutshi@bnsf.com'
+      html: '{{ template "email.app.html" . }}'
+      headers:
+        Subject: '{{ template "email.app.subject" . }}'
+    webhook_configs:
+    - send_resolved: true
+      url: http://prom2teams:8089/v2/OnCall
+  - name: artifactory-mail
+    email_configs: 
+    - send_resolved: true 
+      to: 'EnterpriseDevOps@bnsf.com'
+      html: '{{ template "email.app.html" . }}'
+      headers:
+        Subject: '{{ template "email.app.subject" . }}'
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/All   
+  - name: github-mail
+    email_configs: 
+    - send_resolved: true 
+      to: 'EnterpriseDevOps@bnsf.com'
+      html: '{{ template "email.app.html" . }}'
+      headers:
+        Subject: '{{ template "email.app.subject" . }}'
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/All   
+  - name: versionone-mail
+    email_configs: 
+    - send_resolved: true 
+      to: 'support@versionone.com, Leanne.Smith@BNSF.com'
+      html: '{{ template "email.app.html" . }}'
+      headers:
+        Subject: '{{ template "email.app.subject" . }}'
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/All   
+  - name: remedy-mail
+    email_configs: 
+    - send_resolved: true 
+      to: 'RemedySupport@BNSF.com' 
+      html: '{{ template "email.app.html" . }}'
+      headers:
+        Subject: '{{ template "email.app.subject" . }}'
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/All 
+  - name: activedirectory-mail
+    email_configs: 
+    - send_resolved: true 
+      to: 'DNSAdmin@BNSF.com'
+      html: '{{ template "email.app.html" . }}'
+      headers:
+        Subject: '{{ template "email.app.subject" . }}'
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/All   
+  - name: dns-mail
+    email_configs: 
+    - send_resolved: true 
+      to: 'DNSAdmin@BNSF.com'
+      html: '{{ template "email.app.html" . }}'
+      headers:
+        Subject: '{{ template "email.app.subject" . }}'
+    webhook_configs: 
+    - send_resolved: true 
+      url: http://prom2teams:8089/v2/All
+        
+templates: 
+  - /etc/alertmanager/template/*.tmpl

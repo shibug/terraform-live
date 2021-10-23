@@ -1,0 +1,6 @@
+ #cloud-config
+runcmd:
+ - mkdir -p /data/monitoring/grafana/db /data/monitoring/prometheus/db 
+ - chmod -R o+wt /data/monitoring
+
+

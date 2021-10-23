@@ -1,0 +1,103 @@
+# my global config
+rule_files:
+  - '/etc/prometheus/*.rules.yml'
+
+scrape_configs:
+  - job_name: 'nodes'
+    azure_sd_configs:
+    - subscription_id: 3e46348d-8a24-4177-9e0f-b159c0b62dd0
+      tenant_id: 278cef32-156a-4380-8362-e826da1c1344
+      client_id: 872afa00-916c-4699-a1d7-f525318086a3
+      client_secret: 8pL7Q~32G~dBQ7pGE5MtM7fBrLVHe-Pl7vbVX
+      port: 9100
+    relabel_configs:
+    - source_labels: [__meta_azure_machine_name]
+      regex: use\dl(shared|adabp|adarly)\d{0,2}prod
+      action: keep
+    - source_labels: [__meta_azure_machine_name]
+      target_label:  instance 
+    - source_labels: [__meta_azure_machine_name]
+      regex: use\dl(shared|adabp|adarly)(\d{0,2})prod
+      replacement: $1$2
+      target_label:  node
+    - source_labels: [__meta_azure_machine_private_ip]
+      target_label:  private_ip      
+
+  - job_name: 'swarm'
+    azure_sd_configs:
+    - subscription_id: 3e46348d-8a24-4177-9e0f-b159c0b62dd0
+      tenant_id: 278cef32-156a-4380-8362-e826da1c1344
+      client_id: 872afa00-916c-4699-a1d7-f525318086a3
+      client_secret: 8pL7Q~32G~dBQ7pGE5MtM7fBrLVHe-Pl7vbVX
+      port: 9323
+    relabel_configs:
+    - source_labels: [__meta_azure_machine_name]
+      regex: use\dl(shared|adabp|adarly)\d{0,2}prod
+      action: keep
+    - source_labels: [__meta_azure_machine_name]
+      target_label:  instance 
+    - source_labels: [__meta_azure_machine_name]
+      regex: use\dl(shared|adabp|adarly)(\d{0,2})prod
+      replacement: $1$2
+      target_label:  node
+    - source_labels: [__meta_azure_machine_private_ip]
+      target_label:  private_ip
+
+  - job_name: 'prometheus'      
+    static_configs:
+    - targets: ['localhost:9090']
+      labels:
+        service: 'prometheus'
+      
+  - job_name: 'grafana'
+    dns_sd_configs:
+    - names: ['tasks.grafana']
+      type: A
+      port: 3000
+    relabel_configs:
+    - target_label: domain
+      replacement: monitoring
+    - source_labels: [__meta_dns_name, __address__]
+      target_label: instance
+      regex: tasks\.(.+);192\.168\.\d+\.(\d+):\d+
+      replacement: $1-$2
+    - source_labels: [__meta_dns_name]
+      target_label: service
+      regex: tasks\.(.+)
+
+  - job_name: 'alertmanager'
+    dns_sd_configs:
+    - names: ['tasks.alertmanager1', 'tasks.alertmanager2']
+      type: A
+      port: 9093
+    relabel_configs:
+    - target_label: domain
+      replacement: monitoring
+    - source_labels: [__meta_dns_name, __address__]
+      target_label: instance
+      regex: tasks\.(.+);192\.168\.\d+\.(\d+):\d+
+      replacement: $1-$2
+    - source_labels: [__meta_dns_name]
+      target_label: service
+      regex: tasks\.(.+)
+
+  - job_name: 'relay_1'      
+    static_configs:
+    - targets: ['use1ladarly01prod:12798']
+      labels:
+        service: 'relay_1'
+        instance: 'relay_1'
+                      
+  - job_name: 'relay_2'      
+    static_configs:
+    - targets: ['use1ladarly02prod:12798']
+      labels:
+        service: 'relay_2'
+        instance: 'relay_2'              
+
+  - job_name: 'block_producer'      
+    static_configs:
+    - targets: ['use2ladabpprod:12798']
+      labels:
+        service: 'block_producer'
+        instance: 'block_producer'

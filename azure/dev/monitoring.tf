@@ -15,7 +15,7 @@ resource "azurerm_network_security_group" "shared" {
   name                = "nsg-shared"
   location            = azurerm_resource_group.useast2.location
   resource_group_name = azurerm_resource_group.useast2.name
-  tags                = local.shared_tags
+  tags                = local.cardano_tags
 }
 
 resource "azurerm_subnet_network_security_group_association" "shared" {
@@ -49,7 +49,7 @@ resource "azurerm_public_ip" "shared" {
   resource_group_name = azurerm_resource_group.useast2.name
   location            = azurerm_resource_group.useast2.location
   allocation_method   = "Static"
-  tags                = local.shared_tags
+  tags                = local.cardano_tags
 }
 
 # -----------------------------
@@ -68,7 +68,7 @@ resource "azurerm_network_interface" "shared" {
     public_ip_address_id          = azurerm_public_ip.shared.id
   }
 
-  tags = local.shared_tags
+  tags = local.cardano_tags
 }
 
 # ---------------------------------------------------------
@@ -85,8 +85,8 @@ resource "azurerm_managed_disk" "shared" {
   lifecycle {
     prevent_destroy = true
   }
-  
-  tags = local.shared_tags
+
+  tags = local.cardano_tags
 }
 
 # -----------------------------
@@ -126,7 +126,7 @@ resource "azurerm_linux_virtual_machine" "shared" {
     ignore_changes = [custom_data]
   }
 
-  tags = local.shared_tags
+  tags = local.cardano_tags
 }
 
 # ------------------------------------
