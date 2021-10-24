@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------------------
 #8. Start the nodes
 docker run -d -h bp.cardano.mylo.farm --name cardano-bp -p 6000:6000 -p 12781:12781 -p 12798:12798 --restart on-failure:3 \
-    --security-opt="no-new-privileges=true" -e NETWORK=mainnet -e POOL_DIR=/opt/cardano/cnode/priv \
+    --security-opt="no-new-privileges=true" -e NETWORK=mainnet -e POOL_DIR=/opt/cardano/cnode/priv --no-healthcheck \
     -v /data/cardano/sockets:/opt/cardano/cnode/sockets -v /data/cardano/priv:/opt/cardano/cnode/priv \
     -v /data/cardano/db:/opt/cardano/cnode/db -v /data/cardano/logs:/opt/cardano/cnode/logs \
     -v /data/cardano/config/mainnet-topology.json:/opt/cardano/cnode/files/topology.json \
@@ -12,7 +12,7 @@ docker run -d -h bp.cardano.mylo.farm --name cardano-bp -p 6000:6000 -p 12781:12
 dke cardano-bp /opt/cardano/cnode/scripts/gLiveView.sh
 
 docker run -d -h rly1.cardano.mylo.farm --name cardano-rly1 -p 6000:6000 -p 12781:12781 -p 12798:12798 --restart on-failure:3 \
-    --security-opt="no-new-privileges=true" -e NETWORK=mainnet -v /data/cardano/sockets:/opt/cardano/cnode/sockets \
+    --security-opt="no-new-privileges=true" -e NETWORK=mainnet -v /data/cardano/sockets:/opt/cardano/cnode/sockets --no-healthcheck \
     -v /data/cardano/db:/opt/cardano/cnode/db -v /data/cardano/logs:/opt/cardano/cnode/logs -v /data/cardano/temp:/opt/cardano/cnode/temp \
     -v /data/cardano/config/mainnet-topology.json:/opt/cardano/cnode/files/topology.json \
     -v /data/cardano/scripts/topologyUpdater.sh:/opt/cardano/cnode/scripts/topologyUpdater.sh shibug/cardano-node:1.30.1
@@ -20,7 +20,7 @@ docker run -d -h rly1.cardano.mylo.farm --name cardano-rly1 -p 6000:6000 -p 1278
 dke cardano-rly1 /opt/cardano/cnode/scripts/gLiveView.sh
 
 docker run -d -h rly2.cardano.mylo.farm --name cardano-rly2 -p 6000:6000 -p 12781:12781 -p 12798:12798 --restart on-failure:3 \
-    --security-opt="no-new-privileges=true" -e NETWORK=mainnet -v /data/cardano/sockets:/opt/cardano/cnode/sockets \
+    --security-opt="no-new-privileges=true" -e NETWORK=mainnet -v /data/cardano/sockets:/opt/cardano/cnode/sockets --no-healthcheck \
     -v /data/cardano/db:/opt/cardano/cnode/db -v /data/cardano/logs:/opt/cardano/cnode/logs -v /data/cardano/temp:/opt/cardano/cnode/temp \
     -v /data/cardano/config/mainnet-topology.json:/opt/cardano/cnode/files/topology.json \
     -v /data/cardano/scripts/topologyUpdater.sh:/opt/cardano/cnode/scripts/topologyUpdater.sh shibug/cardano-node:1.30.1
