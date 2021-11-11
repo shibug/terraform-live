@@ -23,5 +23,5 @@ docker run -d -p 80:3000 --name grafana --restart on-failure:3 --security-opt="n
   -e GF_AUTH_ANONYMOUS_ENABLED=true \
   -e GF_AUTH_ANONYMOUS_ORG_NAME="Mylo Farm" \
   -e GF_AUTH_ANONYMOUS_ORG_ROLE="Viewer" \
-  --network monitoring --health-cmd='curl -f localhost:3000/metrics || exit 1' \
+  --network monitoring --health-cmd='wget -qO- localhost:3000/metrics || exit 1' \
   grafana/grafana:8.1.5

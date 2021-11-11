@@ -57,7 +57,7 @@ def pigy_token_allocation(ada_staked):
 pool_id = 'pool1jrn3nlmzt4r99fh5z450nnwqerwljzn426ffknfs9x8gcqgffst'
 
 #Enter the BlockFrost API project ID
-project_id = 'mainnetg1Bjrhw3sOEH3JWlI9gH0BVL09nDW5Ic'
+project_id = 'KjSHiUklMl92jG170Z0fsXjvQvJBxoV8'
 
 api = BlockFrostApi(
     project_id= project_id,  # or export environment variable BLOCKFROST_PROJECT_ID

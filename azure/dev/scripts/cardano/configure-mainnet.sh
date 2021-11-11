@@ -269,5 +269,5 @@ parted /dev/sdb
 e2fsck -f /dev/sdb1
 resize2fs /dev/sdb1
 mount | grep "/dev/sdb"
-mount -a
+mount -av
 mount | grep "/dev/sdb"

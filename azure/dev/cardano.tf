@@ -18,8 +18,8 @@ resource "azurerm_subnet" "adabp" {
 resource "azurerm_subnet" "cardano-relay" {
   name                 = "cardano-relay-subnet"
   resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vn.name
-  address_prefixes     = ["10.0.1.0/25"]
+  virtual_network_name = azurerm_virtual_network.ussouth.name
+  address_prefixes     = ["10.0.65.0/25"]
 }
 
 # -----------------------------
@@ -239,7 +239,7 @@ resource "azurerm_managed_disk" "adabp" {
   resource_group_name  = azurerm_resource_group.useast2.name
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
-  disk_size_gb         = 32
+  disk_size_gb         = 64
 
   lifecycle {
     prevent_destroy = true

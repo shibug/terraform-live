@@ -21,6 +21,9 @@ provider "azurerm" {
   subscription_id = "3e46348d-8a24-4177-9e0f-b159c0b62dd0"
 }
 
+data "azurerm_client_config" "current" {
+}
+
 # -----------------------------
 # RESOURCE GROUPS
 # -----------------------------
@@ -39,11 +42,11 @@ resource "azurerm_resource_group" "useast2" {
 # -----------------------------
 # VIRTUAL NETWORK
 # -----------------------------
-resource "azurerm_virtual_network" "vn" {
-  name                = "vn-${var.env}"
+resource "azurerm_virtual_network" "ussouth" {
+  name                = "vn-ussouth"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  address_space       = [var.cidrblock]
+  address_space       = ["10.0.64.0/18"]
 
   tags = local.common_tags
 }
@@ -58,13 +61,30 @@ resource "azurerm_virtual_network" "useast2" {
 }
 
 # -----------------------------
+# VIRTUAL NETWORK PEERING
+# -----------------------------
+resource "azurerm_virtual_network_peering" "southeast2" {
+  name                         = "southtoeast2"
+  resource_group_name          = azurerm_resource_group.rg.name
+  virtual_network_name         = azurerm_virtual_network.ussouth.name
+  remote_virtual_network_id    = azurerm_virtual_network.useast2.id
+}
+
+resource "azurerm_virtual_network_peering" "east2south" {
+  name                         = "east2tosouth"
+  resource_group_name          = azurerm_resource_group.useast2.name
+  virtual_network_name         = azurerm_virtual_network.useast2.name
+  remote_virtual_network_id    = azurerm_virtual_network.ussouth.id
+}
+
+# -----------------------------
 # SUBNETS
 # -----------------------------
 resource "azurerm_subnet" "worker" {
   name                 = "worker-subnet"
   resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vn.name
-  address_prefixes     = ["10.0.0.0/24"]
+  virtual_network_name = azurerm_virtual_network.ussouth.name
+  address_prefixes     = ["10.0.64.0/24"]
 }
 
 # -----------------------------
