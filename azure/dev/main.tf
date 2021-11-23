@@ -64,17 +64,17 @@ resource "azurerm_virtual_network" "useast2" {
 # VIRTUAL NETWORK PEERING
 # -----------------------------
 resource "azurerm_virtual_network_peering" "southeast2" {
-  name                         = "southtoeast2"
-  resource_group_name          = azurerm_resource_group.rg.name
-  virtual_network_name         = azurerm_virtual_network.ussouth.name
-  remote_virtual_network_id    = azurerm_virtual_network.useast2.id
+  name                      = "southtoeast2"
+  resource_group_name       = azurerm_resource_group.rg.name
+  virtual_network_name      = azurerm_virtual_network.ussouth.name
+  remote_virtual_network_id = azurerm_virtual_network.useast2.id
 }
 
 resource "azurerm_virtual_network_peering" "east2south" {
-  name                         = "east2tosouth"
-  resource_group_name          = azurerm_resource_group.useast2.name
-  virtual_network_name         = azurerm_virtual_network.useast2.name
-  remote_virtual_network_id    = azurerm_virtual_network.ussouth.id
+  name                      = "east2tosouth"
+  resource_group_name       = azurerm_resource_group.useast2.name
+  virtual_network_name      = azurerm_virtual_network.useast2.name
+  remote_virtual_network_id = azurerm_virtual_network.ussouth.id
 }
 
 # -----------------------------
