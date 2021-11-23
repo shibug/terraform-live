@@ -72,7 +72,7 @@ cardano-cli transaction submit --tx-file tx.signed --mainnet
 cd /Users/shibugope/Dropbox/keys/cardano/mainnet
 scp bp.cardano.mylo.farm:/data/cardano/priv/poolMetaDataHash.txt .
 
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 stake-pool registration-certificate \
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.31.0 stake-pool registration-certificate \
     --cold-verification-key-file /keys/node.vkey \
     --vrf-verification-key-file /keys/vrf.vkey \
     --pool-pledge 25000000000 \
@@ -89,7 +89,7 @@ dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 stake-pool
     --metadata-hash $(cat poolMetaDataHash.txt) \
     --out-file /keys/pool.cert
 
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 stake-address delegation-certificate \
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.31.0 stake-address delegation-certificate \
     --stake-verification-key-file /keys/stake.vkey \
     --cold-verification-key-file /keys/node.vkey \
     --out-file /keys/deleg.cert
@@ -98,7 +98,7 @@ scp pool.cert deleg.cert bp.cardano.mylo.farm:/data/cardano/priv/
 
 scp bp.cardano.mylo.farm:/data/cardano/priv/tx.raw .
 
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 transaction sign \
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.31.0 transaction sign \
     --tx-body-file /keys/tx.raw \
     --signing-key-file /keys/payment.skey \
     --signing-key-file /keys/node.skey \

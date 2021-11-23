@@ -7,7 +7,7 @@ docker run -d -h bp.cardano.mylo.farm --name cardano-bp -p 6000:6000 -p 12781:12
     -v /data/cardano/sockets:/opt/cardano/cnode/sockets -v /data/cardano/priv:/opt/cardano/cnode/priv \
     -v /data/cardano/db:/opt/cardano/cnode/db -v /data/cardano/logs:/opt/cardano/cnode/logs \
     -v /data/cardano/config/mainnet-topology.json:/opt/cardano/cnode/files/topology.json \
-    -v /data/cardano/config/mainnet-config.json:/opt/cardano/cnode/files/config.json shibug/cardano-node:1.30.1
+    -v /data/cardano/config/mainnet-config.json:/opt/cardano/cnode/files/config.json shibug/cardano-node:1.31.0
 
 dke cardano-bp /opt/cardano/cnode/scripts/gLiveView.sh
 
@@ -15,7 +15,7 @@ docker run -d -h rly1.cardano.mylo.farm --name cardano-rly1 -p 6000:6000 -p 1278
     --security-opt="no-new-privileges=true" -e NETWORK=mainnet -v /data/cardano/sockets:/opt/cardano/cnode/sockets --no-healthcheck \
     -v /data/cardano/db:/opt/cardano/cnode/db -v /data/cardano/logs:/opt/cardano/cnode/logs -v /data/cardano/temp:/opt/cardano/cnode/temp \
     -v /data/cardano/config/mainnet-topology.json:/opt/cardano/cnode/files/topology.json \
-    -v /data/cardano/scripts/topologyUpdater.sh:/opt/cardano/cnode/scripts/topologyUpdater.sh shibug/cardano-node:1.30.1
+    -v /data/cardano/scripts/topologyUpdater.sh:/opt/cardano/cnode/scripts/topologyUpdater.sh shibug/cardano-node:1.31.0
 
 dke cardano-rly1 /opt/cardano/cnode/scripts/gLiveView.sh
 
@@ -23,7 +23,7 @@ docker run -d -h rly2.cardano.mylo.farm --name cardano-rly2 -p 6000:6000 -p 1278
     --security-opt="no-new-privileges=true" -e NETWORK=mainnet -v /data/cardano/sockets:/opt/cardano/cnode/sockets --no-healthcheck \
     -v /data/cardano/db:/opt/cardano/cnode/db -v /data/cardano/logs:/opt/cardano/cnode/logs -v /data/cardano/temp:/opt/cardano/cnode/temp \
     -v /data/cardano/config/mainnet-topology.json:/opt/cardano/cnode/files/topology.json \
-    -v /data/cardano/scripts/topologyUpdater.sh:/opt/cardano/cnode/scripts/topologyUpdater.sh shibug/cardano-node:1.30.1
+    -v /data/cardano/scripts/topologyUpdater.sh:/opt/cardano/cnode/scripts/topologyUpdater.sh shibug/cardano-node:1.31.0
 
 dke cardano-rly2 /opt/cardano/cnode/scripts/gLiveView.sh
 
@@ -167,26 +167,26 @@ cardano-cli query stake-snapshot --stake-pool-id $(cat stakepoolid.txt) --mainne
 #----------------------------------------------------------------------------------
 # AIR-GAPPED NODE
 #----------------------------------------------------------------------------------
-docker pull shibug/cardano-node:1.30.1
-dki --entrypoint cardano-cli shibug/cardano-node:1.30.1 --version
+docker pull shibug/cardano-node:1.31.0
+dki --entrypoint cardano-cli shibug/cardano-node:1.31.0 --version
 
 #9 Generate block-producer keys
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 node key-gen --cold-verification-key-file /keys/node.vkey --cold-signing-key-file /keys/node.skey --operational-certificate-issue-counter /keys/node.counter
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 node issue-op-cert --kes-verification-key-file /keys/kes.vkey --cold-signing-key-file /keys/node.skey --operational-certificate-issue-counter /keys/node.counter --kes-period 233 --out-file /keys/node.cert
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.31.0 node key-gen --cold-verification-key-file /keys/node.vkey --cold-signing-key-file /keys/node.skey --operational-certificate-issue-counter /keys/node.counter
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.31.0 node issue-op-cert --kes-verification-key-file /keys/kes.vkey --cold-signing-key-file /keys/node.skey --operational-certificate-issue-counter /keys/node.counter --kes-period 233 --out-file /keys/node.cert
 
 #10 Setup payment and stake keys
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 address key-gen --verification-key-file /keys/payment.vkey --signing-key-file /keys/payment.skey
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 stake-address key-gen --verification-key-file /keys/stake.vkey --signing-key-file /keys/stake.skey
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 stake-address build --stake-verification-key-file /keys/stake.vkey --out-file /keys/stake.addr --mainnet
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 address build --payment-verification-key-file /keys/payment.vkey --stake-verification-key-file /keys/stake.vkey --out-file /keys/payment.addr --mainnet
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.31.0 address key-gen --verification-key-file /keys/payment.vkey --signing-key-file /keys/payment.skey
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.31.0 stake-address key-gen --verification-key-file /keys/stake.vkey --signing-key-file /keys/stake.skey
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.31.0 stake-address build --stake-verification-key-file /keys/stake.vkey --out-file /keys/stake.addr --mainnet
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.31.0 address build --payment-verification-key-file /keys/payment.vkey --stake-verification-key-file /keys/stake.vkey --out-file /keys/payment.addr --mainnet
 scp payment.addr bp.cardano.mylo.farm:/data/cardano/priv/
 
 #11 Register your stake address
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 stake-address registration-certificate --stake-verification-key-file /keys/stake.vkey --out-file /keys/stake.cert
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 transaction sign --tx-body-file /keys/tx.raw --signing-key-file /keys/payment.skey --signing-key-file /keys/stake.skey --mainnet --out-file /keys/tx.signed
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.31.0 stake-address registration-certificate --stake-verification-key-file /keys/stake.vkey --out-file /keys/stake.cert
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.31.0 transaction sign --tx-body-file /keys/tx.raw --signing-key-file /keys/payment.skey --signing-key-file /keys/stake.skey --mainnet --out-file /keys/tx.signed
 
 #12 Register your stake pool
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 stake-pool registration-certificate \
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.31.0 stake-pool registration-certificate \
     --cold-verification-key-file /keys/node.vkey \
     --vrf-verification-key-file /keys/vrf.vkey \
     --pool-pledge 5000000000 \
@@ -203,12 +203,12 @@ dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 stake-pool
     --metadata-hash $(cat poolMetaDataHash.txt) \
     --out-file /keys/pool.cert
 
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 stake-address delegation-certificate \
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.31.0 stake-address delegation-certificate \
     --stake-verification-key-file /keys/stake.vkey \
     --cold-verification-key-file /keys/node.vkey \
     --out-file /keys/deleg.cert
 
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 transaction sign \
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.31.0 transaction sign \
     --tx-body-file /keys/tx.raw \
     --signing-key-file /keys/payment.skey \
     --signing-key-file /keys/node.skey \
@@ -217,7 +217,7 @@ dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 transactio
     --out-file /keys/tx.signed
 
 #13 Locate your Stake pool ID and verify everything is working
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 stake-pool id --cold-verification-key-file /keys/node.vkey --output-format hex > stakepoolid.txt
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.31.0 stake-pool id --cold-verification-key-file /keys/node.vkey --output-format hex > stakepoolid.txt
 cat stakepoolid.txt 
 
 #----------------------------------------------------------------------------------

@@ -64,7 +64,7 @@ cardano-cli transaction build-raw \
 #-----------------------------------------------------------
 # RUN ON AIR GAPPED OFFLINE MACHINE
 #-----------------------------------------------------------    
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.30.1 transaction sign \
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.31.0 transaction sign \
     --tx-body-file /keys/tx.raw \
     --signing-key-file /keys/payment.skey \
     --mainnet \

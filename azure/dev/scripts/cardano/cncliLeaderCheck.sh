@@ -57,7 +57,7 @@ fi
 echo "Synchronizing Ledger logs..."
 ${CNCLI_BIN} sync --host 127.0.0.1 --port 6000 --no-service
 
-SNAPSHOT=$(docker run -it --rm -e CARDANO_NODE_SOCKET_PATH=/opt/cardano/cnode/sockets/node0.socket -v /data/cardano/priv:/keys -v /data/cardano/sockets:/opt/cardano/cnode/sockets --entrypoint cardano-cli shibug/cardano-node:1.30.1 query stake-snapshot --stake-pool-id ${POOLID} --mainnet)
+SNAPSHOT=$(docker run -it --rm -e CARDANO_NODE_SOCKET_PATH=/opt/cardano/cnode/sockets/node0.socket -v /data/cardano/priv:/keys -v /data/cardano/sockets:/opt/cardano/cnode/sockets --entrypoint cardano-cli shibug/cardano-node:1.31.0 query stake-snapshot --stake-pool-id ${POOLID} --mainnet)
 echo "SNAPSHOT: ${SNAPSHOT}"
 POOL_STAKE=$(echo ${SNAPSHOT} | jq .${POOL_STAKE_OPT})
 echo "POOL_STAKE: ${POOL_STAKE}"
