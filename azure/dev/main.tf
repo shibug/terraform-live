@@ -122,18 +122,6 @@ resource "azurerm_network_security_rule" "workerInboundInternetAllow" {
   network_security_group_name = azurerm_network_security_group.nsg.name
 }
 
-# -----------------------------
-# PUBLIC IPS
-# -----------------------------
-
-resource "azurerm_public_ip" "theta-edge" {
-  name                = "ip-theta-edge"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  allocation_method   = "Static"
-  tags                = local.theta_tags
-}
-
 locals {
   common_tags = {
     env = var.env
