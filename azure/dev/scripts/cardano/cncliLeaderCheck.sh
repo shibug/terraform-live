@@ -7,6 +7,7 @@ NODE_HOME=/data/cardano
 SQLITE3_BIN=/usr/bin/sqlite3
 CNCLI_BIN=/usr/local/bin/cncli
 POOLID=90e719ff625d4652a6f41568f9cdc0c8ddf90a7556929b4d30298e8c
+CARDANO_NODE_VERSION=1.31.0-a
 OPTION=${1}
 
 if [[ ${OPTION} =~ (prev|current|next) ]]; then
@@ -57,7 +58,7 @@ fi
 echo "Synchronizing Ledger logs..."
 ${CNCLI_BIN} sync --host 127.0.0.1 --port 6000 --no-service
 
-SNAPSHOT=$(docker run -it --rm -e CARDANO_NODE_SOCKET_PATH=/opt/cardano/cnode/sockets/node0.socket -v /data/cardano/priv:/keys -v /data/cardano/sockets:/opt/cardano/cnode/sockets --entrypoint cardano-cli shibug/cardano-node:1.31.0 query stake-snapshot --stake-pool-id ${POOLID} --mainnet)
+SNAPSHOT=$(docker run -it --rm -e CARDANO_NODE_SOCKET_PATH=/opt/cardano/cnode/sockets/node0.socket -v /data/cardano/priv:/keys -v /data/cardano/sockets:/opt/cardano/cnode/sockets --entrypoint cardano-cli shibug/cardano-node:${CARDANO_NODE_VERSION} query stake-snapshot --stake-pool-id ${POOLID} --mainnet)
 echo "SNAPSHOT: ${SNAPSHOT}"
 POOL_STAKE=$(echo ${SNAPSHOT} | jq .${POOL_STAKE_OPT})
 echo "POOL_STAKE: ${POOL_STAKE}"

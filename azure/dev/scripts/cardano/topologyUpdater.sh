@@ -11,8 +11,8 @@ PARENT="$(dirname $0)"
 
 CNODE_HOSTNAME="rly1.cardano.mylo.farm"  # (Optional) Must resolve to the IP you are requesting from
 CNODE_VALENCY=1             # (Optional) for multi-IP hostnames
-MAX_PEERS=6                # Maximum number of peers to return on successful fetch (note that a single peer may include valency of up to 3)
-CUSTOM_PEERS="bp.cardano.mylo.farm:6000|relays-new.cardano-mainnet.iohk.io:3001:2" # *Additional* custom peers to (IP,port[,valency]) to add to your target topology.json
+MAX_PEERS=14                # Maximum number of peers to return on successful fetch (note that a single peer may include valency of up to 3)
+CUSTOM_PEERS="bp.cardano.mylo.farm:6000|relays-new.cardano-mainnet.iohk.io:3001:2|cardano-relay1.panl.org:3001|143.110.234.149:6000|162.243.173.31:6000" # *Additional* custom peers to (IP,port[,valency]) to add to your target topology.json
                             # eg: "10.0.0.1,3001|10.0.0.2,3002|relays.mydomain.com,3003,3"
 BATCH_AUTO_UPDATE=N         # Set to Y to automatically update the script if a new version is available without user interaction
 
@@ -30,19 +30,22 @@ usage() {
 
 		-f    Disable fetch of a fresh topology file
 		-p    Disable node alive push to Topology Updater API
+    -u    Skip script update check overriding UPDATE_CHECK value in env
 		-b    Use alternate branch to check for updates - only for testing/development (Default: master)
 		
 		EOF
   exit 1
 }
 
-TU_FETCH='Y'
-TU_PUSH='Y'
+TU_FETCH=Y
+TU_PUSH=Y
+SKIP_UPDATE=N
 
-while getopts :fpb: opt; do
+while getopts :fpub: opt; do
   case ${opt} in
-    f ) TU_FETCH='N' ;;
-    p ) TU_PUSH='N' ;;
+    f ) TU_FETCH=N ;;
+    p ) TU_PUSH=N ;;
+    u ) SKIP_UPDATE=Y ;;
     b ) echo "${OPTARG}" > "${PARENT}"/.env_branch ;;
     \? ) usage ;;
   esac
@@ -64,16 +67,30 @@ fi
 
 . "${PARENT}"/env offline &>/dev/null # ignore any errors, re-sourced later
 
-if [[ "${UPDATE_CHECK}" == "Y" ]] && [[ "${BATCH_AUTO_UPDATE}" == "N" ]]; then
+if [[ ${UPDATE_CHECK} = Y && ${SKIP_UPDATE} != Y ]]; then
   echo "Checking for script updates..."
+
   # Check availability of checkUpdate function
   if [[ ! $(command -v checkUpdate) ]]; then
     echo -e "\nCould not find checkUpdate function in env, make sure you're using official guild docos for installation!"
     exit 1
   fi
+
   # check for env update
-  ! checkUpdate env ${BATCH_AUTO_UPDATE} && exit 1
-  ! checkUpdate topologyUpdater.sh ${BATCH_AUTO_UPDATE} && exit 1
+  ENV_UPDATED=${BATCH_AUTO_UPDATE}
+  checkUpdate env N N N
+  case $? in
+    1) ENV_UPDATED=Y ;;
+    2) exit 1 ;;
+  esac
+
+  # check for topologyUpdater update
+  checkUpdate topologyUpdater.sh ${ENV_UPDATED}
+  case $? in
+    1) $0 "$@" "-u"; exit 0 ;; # re-launch script with same args skipping update check
+    2) exit 1 ;;
+  esac
+
   # source common env variables in case it was updated
   . "${PARENT}"/env offline &>/dev/null
   case $? in
