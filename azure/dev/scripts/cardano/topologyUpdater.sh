@@ -11,7 +11,7 @@ PARENT="$(dirname $0)"
 
 CNODE_HOSTNAME="rly1.cardano.mylo.farm"  # (Optional) Must resolve to the IP you are requesting from
 CNODE_VALENCY=1             # (Optional) for multi-IP hostnames
-MAX_PEERS=14                # Maximum number of peers to return on successful fetch (note that a single peer may include valency of up to 3)
+MAX_PEERS=9                # Maximum number of peers to return on successful fetch (note that a single peer may include valency of up to 3)
 CUSTOM_PEERS="bp.cardano.mylo.farm:6000|relays-new.cardano-mainnet.iohk.io:3001:2|cardano-relay1.panl.org:3001|143.110.234.149:6000|162.243.173.31:6000" # *Additional* custom peers to (IP,port[,valency]) to add to your target topology.json
                             # eg: "10.0.0.1,3001|10.0.0.2,3002|relays.mydomain.com,3003,3"
 BATCH_AUTO_UPDATE=N         # Set to Y to automatically update the script if a new version is available without user interaction
