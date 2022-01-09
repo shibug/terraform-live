@@ -18,6 +18,24 @@ resource "azurerm_public_ip" "theta-guardian" {
   tags                = local.theta_tags
 }
 
+# ---------------------------------------------------------
+# MANAGED DISK
+# ---------------------------------------------------------
+resource "azurerm_managed_disk" "theta-guardian" {
+  name                 = "md-theta-guardian"
+  location             = azurerm_resource_group.rg.location
+  resource_group_name  = azurerm_resource_group.rg.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 32
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  tags = local.theta_tags
+}
+
 # -----------------------------
 # NETWORK INTERFACES
 # -----------------------------
@@ -38,11 +56,11 @@ resource "azurerm_network_interface" "theta-edge" {
 }
 
 resource "azurerm_network_interface" "theta-guardian" {
-  name                = "nic-theta-guardian"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  enable_accelerated_networking = true
-  internal_dns_name_label = "theta-guardian"
+  name                          = "nic-theta-guardian"
+  location                      = azurerm_resource_group.rg.location
+  resource_group_name           = azurerm_resource_group.rg.name
+  # enable_accelerated_networking = true
+  internal_dns_name_label       = "theta-guardian"
   ip_configuration {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.worker.id
@@ -95,7 +113,7 @@ resource "azurerm_windows_virtual_machine" "theta-guardian" {
   name                = "theta-grdn"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  size                = "Standard_F4s_v2"
+  size                = "Standard_B2ms"
   admin_username      = var.admin_username
   admin_password      = var.windows_admin_password
   network_interface_ids = [
@@ -105,7 +123,7 @@ resource "azurerm_windows_virtual_machine" "theta-guardian" {
   os_disk {
     name                 = "theta-guardian-osdisk"
     caching              = "ReadWrite"
-    storage_account_type = "Premium_LRS"
+    storage_account_type = "Standard_LRS"
   }
 
   source_image_reference {
@@ -124,4 +142,14 @@ resource "azurerm_windows_virtual_machine" "theta-guardian" {
   }
 
   tags = local.theta_tags
+}
+
+# ------------------------------------
+# VIRTUAL MACHINE DATA DISK ATTACHMENT
+# ------------------------------------
+resource "azurerm_virtual_machine_data_disk_attachment" "theta-guardian-dda" {
+  managed_disk_id    = azurerm_managed_disk.theta-guardian.id
+  virtual_machine_id = azurerm_windows_virtual_machine.theta-guardian.id
+  lun                = 1
+  caching            = "ReadWrite"
 }
