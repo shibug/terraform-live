@@ -7,7 +7,7 @@ NODE_HOME=/data/cardano
 SQLITE3_BIN=/usr/bin/sqlite3
 CNCLI_BIN=/usr/local/bin/cncli
 POOLID=90e719ff625d4652a6f41568f9cdc0c8ddf90a7556929b4d30298e8c
-CARDANO_NODE_VERSION=1.32.1
+CARDANO_NODE_VERSION=1.33.0
 OPTION=${1}
 
 if [[ ${OPTION} =~ (prev|current|next) ]]; then

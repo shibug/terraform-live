@@ -21,4 +21,4 @@ cd /Users/shibug/Dropbox/keys/cardano/mainnet
 cp op.cert hot.skey kes.vkey backup/
 scp bp.cardano.mylo.farm:/data/cardano/priv/kes.vkey .
 scp bp.cardano.mylo.farm:/data/cardano/priv/hot.skey .
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.32.1 node issue-op-cert --kes-verification-key-file /keys/kes.vkey --cold-signing-key-file /keys/node.skey --operational-certificate-issue-counter /keys/node.counter --kes-period 373 --out-file /keys/op.cert
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.33.0 node issue-op-cert --kes-verification-key-file /keys/kes.vkey --cold-signing-key-file /keys/node.skey --operational-certificate-issue-counter /keys/node.counter --kes-period 373 --out-file /keys/op.cert
