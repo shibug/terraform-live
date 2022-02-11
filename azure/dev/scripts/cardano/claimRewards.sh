@@ -1,15 +1,17 @@
 #-----------------------------------------------------------
 # RUN ON BLOCK PRODUCER NODE
-#-----------------------------------------------------------   
-cd /opt/cardano/cnode/priv/ 
+#-----------------------------------------------------------    
+cd /opt/cardano/cnode/priv/
 export CARDANO_NODE_SOCKET_PATH=/opt/cardano/cnode/sockets/node0.socket
 currentSlot=$(cardano-cli query tip --mainnet | jq -r '.slot')
 echo Current Slot: $currentSlot
 
-amountToSend=792000000
-echo amountToSend: $amountToSend
+rewardBalance=$(cardano-cli query stake-address-info \
+    --mainnet \
+    --address $(cat stake.addr) | jq -r ".[0].rewardAccountBalance")
+echo rewardBalance: $rewardBalance
 
-destinationAddress=addr1qxzzhf6d9mzdekfchz2vrnqt0q3r4r994n9k8s38xqse9xuhay7stu55slw4d00hnjaaj2d3k6rd8zc6u2qtwhxfwcpqfx9dn9
+destinationAddress=addr1qxpsa4spmwdyr5a2l4v4mhgmrp09cpdzkvv67lxmeyqu9tenx4nu9t6036n3zgpq6qdsykk30rd6c5hk3qc8yqslt97qq0sngh
 echo destinationAddress: $destinationAddress
 
 cardano-cli query utxo --address $(cat payment.addr) --mainnet > fullUtxo.out
@@ -33,46 +35,47 @@ txcnt=$(cat balance.out | wc -l)
 echo Total ADA balance: ${total_balance}
 echo Number of UTXOs: ${txcnt}
 
+withdrawalString="$(cat stake.addr)+${rewardBalance}"
+
 cardano-cli transaction build-raw \
     ${tx_in} \
     --tx-out $(cat payment.addr)+0 \
-    --tx-out ${destinationAddress}+0 \
     --invalid-hereafter $(( ${currentSlot} + 10000)) \
     --fee 0 \
+    --withdrawal ${withdrawalString} \
     --out-file tx.tmp
 
 fee=$(cardano-cli transaction calculate-min-fee \
     --tx-body-file tx.tmp \
     --tx-in-count ${txcnt} \
-    --tx-out-count 2 \
+    --tx-out-count 1 \
     --mainnet \
-    --witness-count 1 \
+    --witness-count 2 \
     --byron-witness-count 0 \
     --protocol-params-file params.json | awk '{ print $1 }')
 echo fee: $fee
 
-# Calculate your change output
-txOut=$((${total_balance}-${fee}-${amountToSend}))
+txOut=$((${total_balance}-${fee}+${rewardBalance}))
 echo Change Output: ${txOut}
 
-#Build your transaction
 cardano-cli transaction build-raw \
     ${tx_in} \
     --tx-out $(cat payment.addr)+${txOut} \
-    --tx-out ${destinationAddress}+${amountToSend} \
     --invalid-hereafter $(( ${currentSlot} + 10000)) \
     --fee ${fee} \
+    --withdrawal ${withdrawalString} \
     --out-file tx.raw
 
 #-----------------------------------------------------------
 # RUN ON AIR GAPPED OFFLINE MACHINE
-#-----------------------------------------------------------    
+#-----------------------------------------------------------  
 # Copy tx.raw to your cold environment.
-# Sign the transaction with the payment secret key. 
+# Sign the transaction with both the payment and stake secret keys. 
 
 dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.33.0 transaction sign \
     --tx-body-file /keys/tx.raw \
     --signing-key-file /keys/payment.skey \
+    --signing-key-file /keys/stake.skey \
     --mainnet \
     --out-file /keys/tx.signed
 
