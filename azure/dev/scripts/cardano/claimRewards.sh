@@ -72,7 +72,7 @@ cardano-cli transaction build-raw \
 # Copy tx.raw to your cold environment.
 # Sign the transaction with both the payment and stake secret keys. 
 
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.33.0 transaction sign \
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.34.1 transaction sign \
     --tx-body-file /keys/tx.raw \
     --signing-key-file /keys/payment.skey \
     --signing-key-file /keys/stake.skey \
