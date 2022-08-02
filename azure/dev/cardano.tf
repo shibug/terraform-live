@@ -101,7 +101,7 @@ resource "azurerm_network_security_rule" "adarlyInboundInternetAllow" {
   source_address_prefix       = "Internet"
   source_port_range           = "*"
   destination_address_prefix  = "VirtualNetwork"
-  destination_port_ranges     = ["1122", "6000"]
+  destination_port_ranges     = ["1122", "6000", "8090"]
   resource_group_name         = azurerm_resource_group.useast2.name
   network_security_group_name = azurerm_network_security_group.adarly.name
 }
