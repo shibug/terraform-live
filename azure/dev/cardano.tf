@@ -33,13 +33,13 @@ resource "azurerm_public_ip" "adarly01" {
   tags                = local.cardano_tags
 }
 
-resource "azurerm_public_ip" "adarly02" {
+/* resource "azurerm_public_ip" "adarly02" {
   name                = "ip-adarly02"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   allocation_method   = "Static"
   tags                = local.cardano_tags
-}
+} */
 
 resource "azurerm_public_ip" "adabp" {
   name                = "ip-adabp"
@@ -168,7 +168,7 @@ resource "azurerm_network_interface" "adarly01" {
   tags = local.cardano_tags
 }
 
-resource "azurerm_network_interface" "adarly02" {
+/* resource "azurerm_network_interface" "adarly02" {
   name                          = "nic-adarly02"
   location                      = azurerm_resource_group.rg.location
   resource_group_name           = azurerm_resource_group.rg.name
@@ -182,7 +182,7 @@ resource "azurerm_network_interface" "adarly02" {
   }
 
   tags = local.cardano_tags
-}
+} */
 
 resource "azurerm_network_interface" "adabp" {
   name                          = "nic-adabp"
@@ -218,7 +218,7 @@ resource "azurerm_managed_disk" "adarly01" {
   tags = local.cardano_tags
 }
 
-resource "azurerm_managed_disk" "adarly02" {
+/* resource "azurerm_managed_disk" "adarly02" {
   name                 = "md-adarly02"
   location             = azurerm_resource_group.rg.location
   resource_group_name  = azurerm_resource_group.rg.name
@@ -231,7 +231,7 @@ resource "azurerm_managed_disk" "adarly02" {
   }
 
   tags = local.cardano_tags
-}
+} */
 
 resource "azurerm_managed_disk" "adabp" {
   name                 = "md-adabp"
@@ -288,7 +288,7 @@ resource "azurerm_linux_virtual_machine" "adarly01" {
   tags = local.cardano_tags
 }
 
-resource "azurerm_linux_virtual_machine" "adarly02" {
+/* resource "azurerm_linux_virtual_machine" "adarly02" {
   name                = "use1ladarly02prod"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
@@ -323,7 +323,7 @@ resource "azurerm_linux_virtual_machine" "adarly02" {
   }
 
   tags = local.cardano_tags
-}
+} */
 
 resource "azurerm_linux_virtual_machine" "adabp" {
   name                = "use2ladabpprod"
@@ -372,13 +372,13 @@ resource "azurerm_virtual_machine_data_disk_attachment" "adarly01" {
   caching            = "ReadWrite"
 }
 
-resource "azurerm_virtual_machine_data_disk_attachment" "adarly02" {
+/* resource "azurerm_virtual_machine_data_disk_attachment" "adarly02" {
   managed_disk_id    = azurerm_managed_disk.adarly02.id
   virtual_machine_id = azurerm_linux_virtual_machine.adarly02.id
   lun                = 1
   caching            = "ReadWrite"
 }
-
+ */
 resource "azurerm_virtual_machine_data_disk_attachment" "adabp" {
   managed_disk_id    = azurerm_managed_disk.adabp.id
   virtual_machine_id = azurerm_linux_virtual_machine.adabp.id
