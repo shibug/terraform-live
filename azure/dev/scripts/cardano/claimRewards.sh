@@ -15,9 +15,7 @@ destinationAddress=addr1qxpsa4spmwdyr5a2l4v4mhgmrp09cpdzkvv67lxmeyqu9tenx4nu9t60
 echo destinationAddress: $destinationAddress
 
 cardano-cli query utxo --address $(cat payment.addr) --mainnet > fullUtxo.out
-
 tail -n +3 fullUtxo.out | sort -k3 -nr > balance.out
-
 cat balance.out
 
 tx_in=""
@@ -27,15 +25,15 @@ while read -r utxo; do
     idx=$(awk '{ print $2 }' <<< "${utxo}")
     utxo_balance=$(awk '{ print $3 }' <<< "${utxo}")
     total_balance=$((${total_balance}+${utxo_balance}))
-    echo TxHash: ${in_addr}#${idx}
-    echo ADA: ${utxo_balance}
     tx_in="${tx_in} --tx-in ${in_addr}#${idx}"
 done < balance.out
 txcnt=$(cat balance.out | wc -l)
 echo Total ADA balance: ${total_balance}
 echo Number of UTXOs: ${txcnt}
+echo Transaction Input: ${tx_in}
 
 withdrawalString="$(cat stake.addr)+${rewardBalance}"
+echo Withdrawal: ${withdrawalString}
 
 cardano-cli transaction build-raw \
     ${tx_in} \
