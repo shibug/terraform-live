@@ -22,14 +22,14 @@ cp op.cert hot.skey kes.vkey backup/
 scp bp.cardano.mylo.farm:/data/cardano/priv/kes.vkey .
 scp bp.cardano.mylo.farm:/data/cardano/priv/hot.skey .
 cat node.counter
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.35.3 node issue-op-cert --kes-verification-key-file /keys/kes.vkey --cold-signing-key-file /keys/node.skey --operational-certificate-issue-counter /keys/node.counter --kes-period 484 --out-file /keys/op.cert
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.35.4 node issue-op-cert --kes-verification-key-file /keys/kes.vkey --cold-signing-key-file /keys/node.skey --operational-certificate-issue-counter /keys/node.counter --kes-period 484 --out-file /keys/op.cert
 #----------------------------------------------------------------------------------
 # OPTIONAL - If Docker doesn't work on mac M1, then run on BLOCK PRODUCER NODE
 #----------------------------------------------------------------------------------
 #Air gapped machine
 scp node.counter node.skey bp.cardano.mylo.farm:/data/cardano/priv/
 #BP node
-cardano-cli node issue-op-cert --kes-verification-key-file kes.vkey --cold-signing-key-file node.skey --operational-certificate-issue-counter node.counter --kes-period 541 --out-file op.cert
+cardano-cli node issue-op-cert --kes-verification-key-file kes.vkey --cold-signing-key-file node.skey --operational-certificate-issue-counter node.counter --kes-period 599 --out-file op.cert
 #----------------------------------------------------------------------------------
 # OPTIONAL STEPS - END
 #----------------------------------------------------------------------------------

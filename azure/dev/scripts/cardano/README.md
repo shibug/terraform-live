@@ -24,7 +24,7 @@ You can also set the version of the submit api you want
 ``` shell
 docker run -d --restart unless-stopped \
     -v ./node-ipc:/opt/cardano/ipc \
-    anewpoolio/cardano-submit-api:v1.35.3-0.1.0
+    anewpoolio/cardano-submit-api:v1.35.4-0.1.0
 ```
 
 # Thanks
