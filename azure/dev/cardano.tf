@@ -209,7 +209,7 @@ resource "azurerm_managed_disk" "adarly01" {
   resource_group_name  = azurerm_resource_group.useast2.name
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
-  disk_size_gb         = 128
+  disk_size_gb         = 256
 
   lifecycle {
     prevent_destroy = true
@@ -239,7 +239,7 @@ resource "azurerm_managed_disk" "adabp" {
   resource_group_name  = azurerm_resource_group.useast2.name
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
-  disk_size_gb         = 128
+  disk_size_gb         = 256
 
   lifecycle {
     prevent_destroy = true
