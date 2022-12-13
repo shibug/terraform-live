@@ -68,7 +68,7 @@ api = BlockFrostApi(
 # Getting the list of delegators
 
 try:
-    delegators = api.pool_delegators(pool_id=pool_id)
+    delegators = api.pool_delegators(pool_id=pool_id,page=1)
 
 except ApiError as e:
     print(e)
@@ -78,16 +78,17 @@ print("Total Number of Delegators:{}".format(len(delegators)))
 mylo = []
 for delegator in delegators:
     delegator_details= {}
-    delegator_details['delegator_stake_key_id'] = delegator.address
-    delegator_details['ada_staked'] = int(delegator.live_stake)/1000000
-    delegator_details['delegator_address'] = delegator_wallet_address(delegator_details['delegator_stake_key_id'])
-    epocs = epoch_details(delegator_details['delegator_stake_key_id'],pool_id)
-    delegator_details['epoc_staked'] = epocs[0]
-    delegator_details['epoc_unstaked'] = epocs[1]
-    delegator_details['staked_rewards'] = delegator_details['ada_staked'] * 0.05
-    delegator_details['piggy_token_allocaion'] = pigy_token_allocation(delegator_details['ada_staked'])
-    print(delegator_details)
-    mylo.append(delegator_details)
+    if int(delegator.live_stake) >= 1000000000:        
+        delegator_details['delegator_stake_key_id'] = delegator.address
+        delegator_details['ada_staked'] = int(delegator.live_stake)/1000000
+        delegator_details['delegator_address'] = delegator_wallet_address(delegator_details['delegator_stake_key_id'])
+        epocs = epoch_details(delegator_details['delegator_stake_key_id'],pool_id)
+        delegator_details['epoc_staked'] = epocs[0]
+        delegator_details['epoc_unstaked'] = epocs[1]
+        delegator_details['staked_rewards'] = delegator_details['ada_staked'] * 0.04
+        # delegator_details['piggy_token_allocaion'] = pigy_token_allocation(delegator_details['ada_staked'])
+        print(delegator_details)
+        mylo.append(delegator_details)
 
 df = pd.DataFrame(mylo)
 print(df)
