@@ -77,7 +77,7 @@ write_files:
        EOF
        fi
 runcmd:
- - mkdir -p /data/cardano
- - chmod -R o+wt /data/cardano
+ - mkdir -p /data/cardano /data/streamr
+ - chmod -R o+wt /data/cardano /data/streamr
 
 
