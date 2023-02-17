@@ -6,10 +6,10 @@ export CARDANO_NODE_SOCKET_PATH=/opt/cardano/cnode/sockets/node0.socket
 currentSlot=$(cardano-cli query tip --mainnet | jq -r '.slot')
 echo Current Slot: $currentSlot
 
-amountToSend=1300000000
+amountToSend=1634000000
 echo amountToSend: $amountToSend
 
-destinationAddress=addr1q8p98eefjaafph3e3tg9zmtz055kerxh9d6sxqrslq57g5xl9k29yh9mvk9gync3xz5sv0k7vv6u5u49vxvexqzg9q6su7ugjy
+destinationAddress=addr1qxzxzm0mc4z6vtda9ucfl6nwl0k9rgxrae478nf7jlr29fvhay7stu55slw4d00hnjaaj2d3k6rd8zc6u2qtwhxfwcpqfm2nsz
 echo destinationAddress: $destinationAddress
 
 cardano-cli query utxo --address $(cat payment.addr) --mainnet > fullUtxo.out
@@ -67,7 +67,7 @@ cardano-cli transaction build-raw \
 # Copy tx.raw to your cold environment.
 # Sign the transaction with the payment secret key. 
 
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.35.4 transaction sign \
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.35.5-1 transaction sign \
     --tx-body-file /keys/tx.raw \
     --signing-key-file /keys/payment.skey \
     --mainnet \
