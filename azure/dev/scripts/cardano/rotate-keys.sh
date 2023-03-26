@@ -29,15 +29,14 @@ dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.35.4 node issue
 #Air gapped machine
 scp node.counter node.skey bp.cardano.mylo.farm:/data/cardano/priv/
 #BP node
-cardano-cli node issue-op-cert --kes-verification-key-file kes.vkey --cold-signing-key-file node.skey --operational-certificate-issue-counter node.counter --kes-period 599 --out-file op.cert
+cardano-cli node issue-op-cert --kes-verification-key-file kes.vkey --cold-signing-key-file node.skey --operational-certificate-issue-counter node.counter --kes-period 658 --out-file op.cert
 #----------------------------------------------------------------------------------
 # OPTIONAL STEPS - END
 #----------------------------------------------------------------------------------
 
 rm -fr node.counter node.skey
 exit
-docker stop cardano-bp
-docker start cardano-bp
+docker restart cardano-bp
 
 #Air gapped machine
 scp bp.cardano.mylo.farm:/data/cardano/priv/op.cert .

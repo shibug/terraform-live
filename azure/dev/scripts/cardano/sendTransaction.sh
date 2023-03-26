@@ -1,6 +1,7 @@
 #-----------------------------------------------------------
 # RUN ON BLOCK PRODUCER NODE
 #-----------------------------------------------------------   
+dke cardano-bp bash
 cd /opt/cardano/cnode/priv/ 
 export CARDANO_NODE_SOCKET_PATH=/opt/cardano/cnode/sockets/node0.socket
 currentSlot=$(cardano-cli query tip --mainnet | jq -r '.slot')

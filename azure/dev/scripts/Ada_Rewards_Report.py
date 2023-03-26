@@ -68,7 +68,7 @@ api = BlockFrostApi(
 # Getting the list of delegators
 
 try:
-    delegators = api.pool_delegators(pool_id=pool_id,page=1)
+    delegators = api.pool_delegators(pool_id=pool_id,page=5)
 
 except ApiError as e:
     print(e)
