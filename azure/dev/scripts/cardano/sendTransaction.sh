@@ -7,10 +7,10 @@ export CARDANO_NODE_SOCKET_PATH=/opt/cardano/cnode/sockets/node0.socket
 currentSlot=$(cardano-cli query tip --mainnet | jq -r '.slot')
 echo Current Slot: $currentSlot
 
-amountToSend=1634000000
+amountToSend=33000000
 echo amountToSend: $amountToSend
 
-destinationAddress=addr1qxzxzm0mc4z6vtda9ucfl6nwl0k9rgxrae478nf7jlr29fvhay7stu55slw4d00hnjaaj2d3k6rd8zc6u2qtwhxfwcpqfm2nsz
+destinationAddress=addr1qxg3q8scak04pf0kcfaz3ywm675dgx28grruujvpxm0l0w5hay7stu55slw4d00hnjaaj2d3k6rd8zc6u2qtwhxfwcpqxt4w9q
 echo destinationAddress: $destinationAddress
 
 cardano-cli query utxo --address $(cat payment.addr) --mainnet > fullUtxo.out

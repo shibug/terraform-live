@@ -5,7 +5,7 @@ docker network create monitoring
 docker run -d -p 9090:9090 --name prometheus --restart on-failure:3 --security-opt="no-new-privileges=true" \
   -v /data/monitoring/prometheus/db:/prometheus -v /data/monitoring/prometheus/config.yml:/etc/prometheus/prometheus.yml \
   --network monitoring --health-cmd='wget -qO- localhost:9090/status || exit 1' --health-start-period=3m \
-  prom/prometheus:v2.30.0 \
+  prom/prometheus:v2.43.0 \
   --config.file=/etc/prometheus/prometheus.yml \
   --web.console.libraries=/etc/prometheus/console_libraries \
   --web.console.templates=/etc/prometheus/consoles \
@@ -24,4 +24,4 @@ docker run -d -p 80:3000 --name grafana --restart on-failure:3 --security-opt="n
   -e GF_AUTH_ANONYMOUS_ORG_NAME="Mylo Farm" \
   -e GF_AUTH_ANONYMOUS_ORG_ROLE="Viewer" \
   --network monitoring --health-cmd='wget -qO- localhost:3000/metrics || exit 1' \
-  grafana/grafana:8.1.5
+  grafana/grafana-oss:8.5.22
