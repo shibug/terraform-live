@@ -1,5 +1,5 @@
 #Configure
-docker run -it -v $(cd /data/streamr; pwd):/home/streamr/.streamr streamr/broker-node:latest bin/config-wizard
+docker run -it -v $(cd /data/streamr; pwd):/home/streamr/.streamr streamr/broker-node:v33.2.0 bin/config-wizard
 
 #Run
 docker run -d --name streamr-broker \
@@ -7,4 +7,4 @@ docker run -d --name streamr-broker \
 --env NODE_ENV=production \
 -p 7170:7170 -p 7171:7171 -p 1883:1883 \
 -v $(cd /data/streamr && pwd):/home/streamr/.streamr \
-streamr/broker-node:latest
+streamr/broker-node:v33.2.0
