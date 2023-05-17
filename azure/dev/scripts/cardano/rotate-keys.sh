@@ -17,26 +17,23 @@ cardano-cli node key-gen-KES --verification-key-file kes.vkey --signing-key-file
 #----------------------------------------------------------------------------------
 # AIR-GAPPED NODE
 #----------------------------------------------------------------------------------
-cd /Users/shibug/Dropbox/keys/cardano/mainnet
+cd /Users/shibug/Library/CloudStorage/Dropbox/keys/cardano/mainnet
 cp op.cert hot.skey kes.vkey backup/
-scp bp.cardano.mylo.farm:/data/cardano/priv/kes.vkey .
-scp bp.cardano.mylo.farm:/data/cardano/priv/hot.skey .
 cat node.counter
+#----------------------------------------------------------------------------------
+# AIR-GAPPED NODE
 dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.35.4 node issue-op-cert --kes-verification-key-file /keys/kes.vkey --cold-signing-key-file /keys/node.skey --operational-certificate-issue-counter /keys/node.counter --kes-period 484 --out-file /keys/op.cert
 #----------------------------------------------------------------------------------
-# OPTIONAL - If Docker doesn't work on mac M1, then run on BLOCK PRODUCER NODE
+# OR
 #----------------------------------------------------------------------------------
-#Air gapped machine
+# AIR-GAPPED NODE
 scp node.counter node.skey bp.cardano.mylo.farm:/data/cardano/priv/
-#BP node
+#BP node Change the kes-period value
 cardano-cli node issue-op-cert --kes-verification-key-file kes.vkey --cold-signing-key-file node.skey --operational-certificate-issue-counter node.counter --kes-period 658 --out-file op.cert
-#----------------------------------------------------------------------------------
-# OPTIONAL STEPS - END
-#----------------------------------------------------------------------------------
-
 rm -fr node.counter node.skey
+#----------------------------------------------------------------------------------
 exit
 docker restart cardano-bp
 
-#Air gapped machine
-scp bp.cardano.mylo.farm:/data/cardano/priv/op.cert .
+# AIR-GAPPED NODE
+scp bp.cardano.mylo.farm:/data/cardano/priv/{kes.vkey,hot.skey,op.cert} .
