@@ -10,32 +10,6 @@ resource "azurerm_public_ip" "theta-edge" {
   tags                = local.theta_tags
 }
 
-resource "azurerm_public_ip" "theta-guardian" {
-  name                = "ip-theta-guardian"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  allocation_method   = "Static"
-  tags                = local.theta_tags
-}
-
-# ---------------------------------------------------------
-# MANAGED DISK
-# ---------------------------------------------------------
-resource "azurerm_managed_disk" "theta-guardian" {
-  name                 = "md-theta-guardian"
-  location             = azurerm_resource_group.rg.location
-  resource_group_name  = azurerm_resource_group.rg.name
-  storage_account_type = "Premium_LRS"
-  create_option        = "Empty"
-  disk_size_gb         = 64
-
-  lifecycle {
-    prevent_destroy = true
-  }
-
-  tags = local.theta_tags
-}
-
 # -----------------------------
 # NETWORK INTERFACES
 # -----------------------------
@@ -50,22 +24,6 @@ resource "azurerm_network_interface" "theta-edge" {
     subnet_id                     = azurerm_subnet.worker.id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.theta-edge.id
-  }
-
-  tags = local.theta_tags
-}
-
-resource "azurerm_network_interface" "theta-guardian" {
-  name                          = "nic-theta-guardian"
-  location                      = azurerm_resource_group.rg.location
-  resource_group_name           = azurerm_resource_group.rg.name
-  # enable_accelerated_networking = true
-  internal_dns_name_label       = "theta-guardian"
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.worker.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.theta-guardian.id
   }
 
   tags = local.theta_tags
@@ -107,49 +65,4 @@ resource "azurerm_windows_virtual_machine" "theta-edge" {
   }
 
   tags = local.theta_tags
-}
-
-resource "azurerm_windows_virtual_machine" "theta-guardian" {
-  name                = "theta-grdn"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  size                = "Standard_B2ms"
-  admin_username      = var.admin_username
-  admin_password      = var.windows_admin_password
-  network_interface_ids = [
-    azurerm_network_interface.theta-guardian.id,
-  ]
-
-  os_disk {
-    name                 = "theta-guardian-osdisk"
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2019-Datacenter"
-    version   = "latest"
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  lifecycle {
-    ignore_changes = [resource_group_name, admin_username, admin_password]
-  }
-
-  tags = local.theta_tags
-}
-
-# ------------------------------------
-# VIRTUAL MACHINE DATA DISK ATTACHMENT
-# ------------------------------------
-resource "azurerm_virtual_machine_data_disk_attachment" "theta-guardian-dda" {
-  managed_disk_id    = azurerm_managed_disk.theta-guardian.id
-  virtual_machine_id = azurerm_windows_virtual_machine.theta-guardian.id
-  lun                = 1
-  caching            = "ReadWrite"
 }
