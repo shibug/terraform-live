@@ -77,59 +77,11 @@ resource "azurerm_virtual_network_peering" "east2south" {
   remote_virtual_network_id = azurerm_virtual_network.ussouth.id
 }
 
-# -----------------------------
-# SUBNETS
-# -----------------------------
-resource "azurerm_subnet" "worker" {
-  name                 = "worker-subnet"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.ussouth.name
-  address_prefixes     = ["10.0.64.0/24"]
-}
-
-# -----------------------------
-# NETWORK SECURITY GROUPS
-# -----------------------------
-
-resource "azurerm_network_security_group" "nsg" {
-  name                = "nsg-${var.env}"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  tags                = local.theta_tags
-}
-
-resource "azurerm_subnet_network_security_group_association" "nsga" {
-  subnet_id                 = azurerm_subnet.worker.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-# --------------------------------------------------
-# NETWORK SECURITY RULES
-# --------------------------------------------------
-
-# Allow port 3389 access from Internet
-resource "azurerm_network_security_rule" "workerInboundInternetAllow" {
-  name                        = "IInternetA"
-  priority                    = 1000
-  direction                   = "Inbound"
-  access                      = "Allow"
-  protocol                    = "Tcp"
-  source_address_prefix       = "Internet"
-  source_port_range           = "*"
-  destination_address_prefix  = "VirtualNetwork"
-  destination_port_ranges     = ["3389", "5900"]
-  resource_group_name         = azurerm_resource_group.rg.name
-  network_security_group_name = azurerm_network_security_group.nsg.name
-}
-
 locals {
   common_tags = {
     env = var.env
   }
   cardano_tags = {
     crypto = "cardano"
-  }
-  theta_tags = {
-    crypto = "theta"
   }
 }
