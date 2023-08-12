@@ -8,7 +8,7 @@ scrape_configs:
     - subscription_id: 3e46348d-8a24-4177-9e0f-b159c0b62dd0
       tenant_id: 278cef32-156a-4380-8362-e826da1c1344
       client_id: 872afa00-916c-4699-a1d7-f525318086a3
-      client_secret: K.Z8Q~0pL.tlWd17EoMoXFj3jsWgBj--apJKVc1r
+      client_secret: 
       port: 9100
     relabel_configs:
     - source_labels: [__meta_azure_machine_name]
@@ -28,7 +28,7 @@ scrape_configs:
     - subscription_id: 3e46348d-8a24-4177-9e0f-b159c0b62dd0
       tenant_id: 278cef32-156a-4380-8362-e826da1c1344
       client_id: 872afa00-916c-4699-a1d7-f525318086a3
-      client_secret: K.Z8Q~0pL.tlWd17EoMoXFj3jsWgBj--apJKVc1r
+      client_secret: 
       port: 9323
     relabel_configs:
     - source_labels: [__meta_azure_machine_name]
