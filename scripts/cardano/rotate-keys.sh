@@ -29,7 +29,8 @@ dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.35.4 node issue
 # AIR-GAPPED NODE
 scp node.counter node.skey bp.cardano.mylo.farm:/data/cardano/priv/
 #BP node Change the kes-period value
-cardano-cli node issue-op-cert --kes-verification-key-file kes.vkey --cold-signing-key-file node.skey --operational-certificate-issue-counter node.counter --kes-period 773 --out-file op.cert
+cardano-cli node issue-op-cert --kes-verification-key-file kes.vkey --cold-signing-key-file node.skey --operational-certificate-issue-counter node.counter --kes-period 830 --out-file op.cert
+#BEFORE DELETING, VERIFY IF THE NODE COUNTER IS INCREMENTED
 rm -fr node.counter node.skey
 #----------------------------------------------------------------------------------
 exit
