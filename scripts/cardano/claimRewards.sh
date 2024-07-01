@@ -1,9 +1,9 @@
 #-----------------------------------------------------------
 # RUN ON BLOCK PRODUCER NODE
-#-----------------------------------------------------------    
+#-----------------------------------------------------------   
 dke cardano-bp bash
 cd /opt/cardano/cnode/priv/
-export CARDANO_NODE_SOCKET_PATH=/opt/cardano/cnode/sockets/node0.socket
+export CARDANO_NODE_SOCKET_PATH=/opt/cardano/cnode/sockets/node.socket
 currentSlot=$(cardano-cli query tip --mainnet | jq -r '.slot')
 echo Current Slot: $currentSlot
 
@@ -12,13 +12,15 @@ rewardBalance=$(cardano-cli query stake-address-info \
     --address $(cat stake.addr) | jq -r ".[0].rewardAccountBalance")
 echo rewardBalance: $rewardBalance
 
-destinationAddress=addr1qxpsa4spmwdyr5a2l4v4mhgmrp09cpdzkvv67lxmeyqu9tenx4nu9t6036n3zgpq6qdsykk30rd6c5hk3qc8yqslt97qq0sngh
+destinationAddress="addr1qxpsa4spmwdyr5a2l4v4mhgmrp09cpdzkvv67lxmeyqu9tenx4nu9t6036n3zgpq6qdsykk30rd6c5hk3qc8yqslt97qq0sngh"
 echo destinationAddress: $destinationAddress
 
+# Get the transaction hash and index of the UTXO to spend
 cardano-cli query utxo --address $(cat payment.addr) --mainnet > fullUtxo.out
 tail -n +3 fullUtxo.out | sort -k3 -nr > balance.out
 cat balance.out
 
+# Draft the transaction
 tx_in=""
 total_balance=0
 while read -r utxo; do
@@ -54,9 +56,11 @@ fee=$(cardano-cli transaction calculate-min-fee \
     --protocol-params-file params.json | awk '{ print $1 }')
 echo fee: $fee
 
+# Calculate your change output
 txOut=$((${total_balance}-${fee}+${rewardBalance}))
 echo Change Output: ${txOut}
 
+#Build your transaction
 cardano-cli transaction build-raw \
     ${tx_in} \
     --tx-out $(cat payment.addr)+${txOut} \
@@ -77,6 +81,15 @@ dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.35.5-1 transact
     --signing-key-file /keys/stake.skey \
     --mainnet \
     --out-file /keys/tx.signed
+
+OR
+
+cardano-cli transaction sign \
+    --tx-body-file tx.raw \
+    --signing-key-file payment.skey \
+    --signing-key-file stake.skey \
+    --mainnet \
+    --out-file tx.signed
 
 #-----------------------------------------------------------
 # RUN ON BLOCK PRODUCER NODE

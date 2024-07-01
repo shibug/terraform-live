@@ -3,7 +3,9 @@
 #-----------------------------------------------------------   
 dke cardano-bp bash
 cd /opt/cardano/cnode/priv/ 
-export CARDANO_NODE_SOCKET_PATH=/opt/cardano/cnode/sockets/node0.socket
+export CARDANO_NODE_SOCKET_PATH=/opt/cardano/cnode/sockets/node.socket
+currentSlot=$(cardano-cli query tip --mainnet | jq -r '.slot')
+echo Current Slot: $currentSlot
 
 # Get protocol parameters
 cardano-cli query protocol-parameters --mainnet --out-file params.json
@@ -11,7 +13,7 @@ cardano-cli query protocol-parameters --mainnet --out-file params.json
 amountToSend=10000000
 echo amountToSend: $amountToSend
 
-destinationAddress="addr1q95jcluf5wkg227s4fn8gq6phnk54euc4h4e4pnudfk3qzyhay7stu55slw4d00hnjaaj2d3k6rd8zc6u2qtwhxfwcpqv9nkd0"
+destinationAddress="addr1qxzzhf6d9mzdekfchz2vrnqt0q3r4r994n9k8s38xqse9xuhay7stu55slw4d00hnjaaj2d3k6rd8zc6u2qtwhxfwcpqfx9dn9"
 echo destinationAddress: $destinationAddress
 
 # Get the transaction hash and index of the UTXO to spend
@@ -29,46 +31,40 @@ while read -r utxo; do
     total_balance=$((${total_balance}+${utxo_balance}))
     tx_in="${tx_in} --tx-in ${in_addr}#${idx}"
 done < balance.out
-tx_cnt=$(cat balance.out | wc -l)
+txcnt=$(cat balance.out | wc -l)
 echo Total ADA balance: ${total_balance}
-echo Number of UTXOs: ${tx_cnt}
+echo Number of UTXOs: ${txcnt}
 echo Transaction Input: ${tx_in}
 
 cardano-cli transaction build-raw \
     ${tx_in} \
-    --tx-out ${destinationAddress}+${amountToSend}+"1000000 a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.484f534b59"+"1000000000 af2e27f580f7f08e93190a81f72462f153026d06450924726645891b.44524950"+"50000000 edfd7a1d77bcb8b884c474bdc92a16002d1fb720e454fa6e99344479.4e5458"+"1 f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a.6d796c6f" \
     --tx-out $(cat payment.addr)+0 \
-    --invalid-hereafter 0 \
+    --tx-out ${destinationAddress}+0 \
+    --invalid-hereafter $(( ${currentSlot} + 10000)) \
     --fee 0 \
     --out-file tx.tmp
 
 # Calculate the fee
 fee=$(cardano-cli transaction calculate-min-fee \
     --tx-body-file tx.tmp \
-    --tx-in-count ${tx_cnt} \
+    --tx-in-count ${txcnt} \
     --tx-out-count 2 \
+    --mainnet \
     --witness-count 1 \
     --byron-witness-count 0 \
-    --mainnet \
     --protocol-params-file params.json | awk '{ print $1 }')
 echo fee: $fee
 
 # Calculate your change output
-chg_out=$((${total_balance}-${fee}-${amountToSend}))
-echo Change Output: ${chg_out}
+txOut=$((${total_balance}-${fee}-${amountToSend}))
+echo Change Output: ${txOut}
 
-# Determine the TTL (time to Live) for the transaction
-currentSlot=$(cardano-cli query tip --mainnet | jq -r '.slot')
-echo Current Slot: $currentSlot
-TTL=$(( ${currentSlot} + 300))
-echo TTL: ${TTL}
-
-# Build your transaction
+#Build your transaction
 cardano-cli transaction build-raw \
     ${tx_in} \
-    --tx-out ${destinationAddress}+${amountToSend}+"1000000 a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.484f534b59"+"1000000000 af2e27f580f7f08e93190a81f72462f153026d06450924726645891b.44524950"+"50000000 edfd7a1d77bcb8b884c474bdc92a16002d1fb720e454fa6e99344479.4e5458"+"1 f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a.6d796c6f" \
-    --tx-out $(cat payment.addr)+${chg_out} \
-    --invalid-hereafter ${TTL} \
+    --tx-out $(cat payment.addr)+${txOut} \
+    --tx-out ${destinationAddress}+${amountToSend}+"1 ab182ed76b669b49ee54a37dee0d0064ad4208a859cc4fdf3f906d87.54656464794265617273436c756233383335" \
+    --invalid-hereafter $(( ${currentSlot} + 10000)) \
     --fee ${fee} \
     --out-file tx.raw
 
@@ -84,6 +80,13 @@ dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.35.4 transactio
     --mainnet \
     --out-file /keys/tx.signed
 
+OR
+
+cardano-cli transaction sign \
+    --tx-body-file tx.raw \
+    --signing-key-file payment.skey \
+    --mainnet \
+    --out-file tx.signed
 #-----------------------------------------------------------
 # RUN ON BLOCK PRODUCER NODE
 #-----------------------------------------------------------    

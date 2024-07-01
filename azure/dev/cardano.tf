@@ -255,7 +255,7 @@ resource "azurerm_linux_virtual_machine" "adarly01" {
   name                = "use1ladarly01prod"
   resource_group_name = azurerm_resource_group.useast2.name
   location            = azurerm_resource_group.useast2.location
-  size                = "Standard_E2s_v5"
+  size                = "Standard_E4s_v5"
   admin_username      = var.admin_username
   network_interface_ids = [
     azurerm_network_interface.adarly01.id,

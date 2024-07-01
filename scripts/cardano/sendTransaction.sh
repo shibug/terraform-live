@@ -2,21 +2,23 @@
 # RUN ON BLOCK PRODUCER NODE
 #-----------------------------------------------------------   
 dke cardano-bp bash
-cd /opt/cardano/cnode/priv/ 
-export CARDANO_NODE_SOCKET_PATH=/opt/cardano/cnode/sockets/node0.socket
+cd /opt/cardano/cnode/priv/
+export CARDANO_NODE_SOCKET_PATH=/opt/cardano/cnode/sockets/node.socket
 currentSlot=$(cardano-cli query tip --mainnet | jq -r '.slot')
 echo Current Slot: $currentSlot
 
 amountToSend=33000000
 echo amountToSend: $amountToSend
 
-destinationAddress=addr1qxg3q8scak04pf0kcfaz3ywm675dgx28grruujvpxm0l0w5hay7stu55slw4d00hnjaaj2d3k6rd8zc6u2qtwhxfwcpqxt4w9q
+destinationAddress="addr1qxzzhf6d9mzdekfchz2vrnqt0q3r4r994n9k8s38xqse9xuhay7stu55slw4d00hnjaaj2d3k6rd8zc6u2qtwhxfwcpqfx9dn9"
 echo destinationAddress: $destinationAddress
 
+# Get the transaction hash and index of the UTXO to spend
 cardano-cli query utxo --address $(cat payment.addr) --mainnet > fullUtxo.out
 tail -n +3 fullUtxo.out | sort -k3 -nr > balance.out
 cat balance.out
 
+# Draft the transaction
 tx_in=""
 total_balance=0
 while read -r utxo; do
@@ -39,6 +41,7 @@ cardano-cli transaction build-raw \
     --fee 0 \
     --out-file tx.tmp
 
+# Calculate the fee
 fee=$(cardano-cli transaction calculate-min-fee \
     --tx-body-file tx.tmp \
     --tx-in-count ${txcnt} \
@@ -68,12 +71,19 @@ cardano-cli transaction build-raw \
 # Copy tx.raw to your cold environment.
 # Sign the transaction with the payment secret key. 
 
-dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.35.5-1 transaction sign \
+dki -v $PWD:/keys --entrypoint cardano-cli shibug/cardano-node:1.35.4 transaction sign \
     --tx-body-file /keys/tx.raw \
     --signing-key-file /keys/payment.skey \
     --mainnet \
     --out-file /keys/tx.signed
 
+OR
+
+cardano-cli transaction sign \
+    --tx-body-file tx.raw \
+    --signing-key-file payment.skey \
+    --mainnet \
+    --out-file tx.signed
 #-----------------------------------------------------------
 # RUN ON BLOCK PRODUCER NODE
 #-----------------------------------------------------------    
