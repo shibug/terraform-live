@@ -82,9 +82,9 @@ resource "azurerm_managed_disk" "shared" {
   create_option        = "Empty"
   disk_size_gb         = 32
 
-  lifecycle {
-    prevent_destroy = true
-  }
+#  lifecycle {
+#    prevent_destroy = true
+#  }
 
   tags = local.cardano_tags
 }

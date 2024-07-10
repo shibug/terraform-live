@@ -211,9 +211,9 @@ resource "azurerm_managed_disk" "adarly01" {
   create_option        = "Empty"
   disk_size_gb         = 256
 
-  lifecycle {
-    prevent_destroy = true
-  }
+#  lifecycle {
+#    prevent_destroy = true
+#  }
 
   tags = local.cardano_tags
 }
@@ -241,9 +241,9 @@ resource "azurerm_managed_disk" "adabp" {
   create_option        = "Empty"
   disk_size_gb         = 256
 
-  lifecycle {
-    prevent_destroy = true
-  }
+#  lifecycle {
+#    prevent_destroy = true
+#  }
 
   tags = local.cardano_tags
 }
